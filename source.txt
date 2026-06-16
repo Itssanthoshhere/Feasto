@@ -129,6 +129,8 @@ Create a `.env` file:
 
 ```env
 PORT=5000
+
+MONGO_URI=
 ```
 
 ---
