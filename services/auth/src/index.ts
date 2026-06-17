@@ -10,6 +10,10 @@ app.use(express.json());
 
 app.use("/api/auth", authRoute);
 
+if (!process.env.JWT_SECRET) {
+  throw new Error("Missing required environment variable: JWT_SECRET");
+}
+
 const PORT = process.env.PORT || 8001;
 
 app.listen(PORT, () => {
