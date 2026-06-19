@@ -21,7 +21,7 @@ export const loginUser = TryCatch(async (req, res) => {
     `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`,
   );
 
-  const { email, name, image } = userRes.data;
+  const { email, name, picture } = userRes.data;
 
   let user = await User.findOne({ email });
 
@@ -29,7 +29,7 @@ export const loginUser = TryCatch(async (req, res) => {
     user = await User.create({
       name,
       email,
-      image,
+      image: picture || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
     });
   }
 
