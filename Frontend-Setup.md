@@ -87,6 +87,51 @@ Used for:
 
 ---
 
+### Google OAuth
+
+```bash
+npm install @react-oauth/google@latest
+```
+
+Used for:
+
+- Google Sign-In
+- One Tap Authentication
+- Social Login Integration
+- User Onboarding
+
+---
+
+### React Icons
+
+```bash
+npm i react-icons
+```
+
+Used for:
+
+- Google Authentication Icons
+- Navigation Icons
+- Dashboard Icons
+- Social Media Icons
+- UI Enhancements
+
+Example:
+
+```tsx
+import { FcGoogle } from "react-icons/fc";
+```
+
+---
+
+## Install All Frontend Dependencies Together
+
+```bash
+npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons
+```
+
+---
+
 ## Configure Tailwind CSS
 
 ### vite.config.ts
@@ -121,12 +166,28 @@ npm i react-router-dom
 
 ---
 
+## Configure Google OAuth
+
+### main.tsx
+
+```tsx
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+<GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+  <App />
+</GoogleOAuthProvider>;
+```
+
+---
+
 ## Environment Variables
 
 Create:
 
 ```env
 VITE_API_URL=http://localhost:8000/api
+
+VITE_GOOGLE_CLIENT_ID=
 ```
 
 ---
@@ -166,6 +227,8 @@ npm run preview
 - React Router DOM
 - Axios
 - React Hot Toast
+- Google OAuth
+- React Icons
 
 ---
 
@@ -183,4 +246,4 @@ VITE v8.x.x ready
 ➜ Local: http://localhost:5173
 ```
 
-This setup serves as the frontend foundation for Feasto and will support authentication, role-based dashboards, restaurant management, food ordering, delivery tracking, and payment workflows.
+This setup serves as the frontend foundation for Feasto and will support authentication, Google Sign-In, role-based dashboards, restaurant management, food ordering, delivery tracking, and payment workflows.
