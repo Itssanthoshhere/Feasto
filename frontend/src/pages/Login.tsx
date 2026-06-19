@@ -1,7 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../main";
 import toast from "react-hot-toast";
 import { useGoogleLogin } from "@react-oauth/google";
 import { FcGoogle } from "react-icons/fc";
@@ -14,7 +13,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const result = await axios.post(`${authService}/api/auth/login`, {
+      const result = await axios.post(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/auth/login`, {
         code: authResult["code"],
       });
 
