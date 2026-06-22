@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import { Toaster } from "react-hot-toast";
 import PublicRoute from "./components/publicRoute";
 import ProtectedRoute from "./components/protectedRoute";
+import SelectRole from "./pages/SelectRole";
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
+            <Route path="/select-role" element={<SelectRole />} />
           </Route>
         </Routes>
         <Toaster />
