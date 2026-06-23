@@ -8,6 +8,7 @@ import {
 } from "react";
 import { authService } from "../main";
 import type { AppContextType, LocationData, User } from "../types";
+import { Toaster } from "react-hot-toast";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -89,7 +90,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       () => {
         setCity("Location Permission Denied");
         setLoadingLocation(false);
-      }
+      },
     );
   }, []);
 
@@ -108,6 +109,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }}
     >
       {children}
+      <Toaster />
     </AppContext.Provider>
   );
 };
