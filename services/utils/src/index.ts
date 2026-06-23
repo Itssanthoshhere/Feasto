@@ -25,7 +25,13 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 const { CLOUD_NAME, CLOUD_API_KEY, CLOUD_SECRET_KEY } = process.env;
 
 if (!CLOUD_NAME || !CLOUD_API_KEY || !CLOUD_SECRET_KEY) {
-  throw new Error("Missing Cloudinary environment variables");
+  const missing = [];
+  if (!CLOUD_NAME) missing.push("CLOUD_NAME");
+  if (!CLOUD_API_KEY) missing.push("CLOUD_API_KEY");
+  if (!CLOUD_SECRET_KEY) missing.push("CLOUD_SECRET_KEY");
+  throw new Error(
+    `Missing required Cloudinary environment variables: ${missing.join(", ")}`
+  );
 }
 
 cloudinary.v2.config({
