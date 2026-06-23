@@ -7,6 +7,8 @@ import { AppProvider } from "./context/AppContext.tsx";
 
 export const authService =
   import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost:8000";
+export const restaurantService =
+  import.meta.env.VITE_RESTAURANT_SERVICE_URL || "http://localhost:8002";
 
 const clientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||

@@ -3,6 +3,7 @@ import getBuffer from "../config/datauri.js";
 import { AuthenticatedRequest } from "../middlewares/isAuth.js";
 import TryCatch from "../middlewares/trycatch.js";
 import Restaurant from "../models/Restaurant.js";
+import jwt from "jsonwebtoken";
 
 export const addRestaurant = TryCatch(
   async (req: AuthenticatedRequest, res) => {
@@ -72,6 +73,108 @@ export const addRestaurant = TryCatch(
 
     return res.status(201).json({
       message: "Restaurant created successfully",
+      restaurant,
+    });
+  },
+);
+
+export const fetchMyRestaurant = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Please Login",
+      });
+    }
+    const restaurant = await Restaurant.findOne({ ownerId: req.user._id });
+
+    if (!restaurant) {
+      return res.status(400).json({
+        message: "No Restaurant found",
+      });
+    }
+
+    if (!req.user.restaurantId) {
+      const token = jwt.sign(
+        {
+          user: {
+            ...req.user,
+            restaurantId: restaurant._id,
+          },
+        },
+        process.env.JWT_SECRET as string,
+        {
+          expiresIn: "15d",
+        },
+      );
+
+      return res.json({ restaurant, token });
+    }
+
+    res.json({ restaurant });
+  },
+);
+
+export const updateStatusRestaurant = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    if (!req.user) {
+      return res.status(403).json({
+        message: "Please Login",
+      });
+    }
+
+    const { status } = req.body;
+
+    if (typeof status !== "boolean") {
+      return res.status(400).json({
+        message: "Status must be boolean",
+      });
+    }
+
+    const restaurant = await Restaurant.findOneAndUpdate(
+      {
+        ownerId: req.user._id,
+      },
+      { isOpen: status },
+      { new: true },
+    );
+
+    if (!restaurant) {
+      return res.status(404).json({
+        message: "Restaurant not found",
+      });
+    }
+
+    res.json({
+      message: "Restaurant status Updated",
+      restaurant,
+    });
+  },
+);
+
+export const updateRestaurant = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    if (!req.user) {
+      return res.status(403).json({
+        message: "Please Login",
+      });
+    }
+
+    const { name, description } = req.body;
+
+    const restaurant = await Restaurant.findOneAndUpdate(
+      { ownerId: req.user._id },
+      { name: name, description: description },
+      { new: true },
+    );
+
+    if (!restaurant) {
+      return res.status(404).json({
+        message: "Restaurant not found",
+      });
+    }
+
+    res.json({
+      message: "Restaurant Updated",
       restaurant,
     });
   },
