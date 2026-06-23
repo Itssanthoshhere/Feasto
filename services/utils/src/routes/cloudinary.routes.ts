@@ -4,7 +4,7 @@ import cloudinary from "cloudinary";
 const router = express.Router();
 router.post("/upload", async (req, res) => {
   try {
-    const { buffer } = req.body;
+    const { buffer, folder } = req.body;
 
     if (!buffer) {
       return res.status(400).json({
@@ -27,7 +27,10 @@ router.post("/upload", async (req, res) => {
       });
     }
 
-    const cloud = await cloudinary.v2.uploader.upload(buffer);
+    const cloud = await cloudinary.v2.uploader.upload(buffer, {
+      resource_type: "image",
+      folder: folder || "feasto",
+    });
     res.json({
       success: true,
       url: cloud.secure_url,
