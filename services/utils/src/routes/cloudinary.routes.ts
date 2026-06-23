@@ -12,6 +12,13 @@ router.post("/upload", async (req, res) => {
       });
     }
 
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (Buffer.byteLength(buffer, "utf8") > MAX_SIZE) {
+      return res.status(413).json({
+        message: "File exceeds the 10MB size limit",
+      });
+    }
+
     const cloud = await cloudinary.v2.uploader.upload(buffer);
     res.json({
       success: true,
