@@ -31,6 +31,8 @@ export interface IRestaurant {
   ownerId: string;
   phone: number;
   isVerified: boolean;
+  rating: number;
+  totalReviews: number;
 
   autoLocation: {
     type: "Point";
@@ -39,4 +41,16 @@ export interface IRestaurant {
   };
   isOpen: boolean;
   createdAt: Date;
+}
+
+export interface IMenuItem {
+  _id: string;
+  restaurantId: string;
+  name: string;
+  description: string;
+  image?: string;
+  price: number;
+  isAvailable: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
