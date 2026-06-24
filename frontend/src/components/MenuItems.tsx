@@ -86,13 +86,21 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
             key={item._id}
           >
             <div className="relative h-36 w-full overflow-hidden">
-              <img
-                src={item.image}
-                alt={item.name}
-                className={`h-full w-full object-cover ${
-                  !item.isAvailable ? "grayscale brightness-75" : ""
-                }`}
-              />
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className={`h-full w-full object-cover ${
+                    !item.isAvailable ? "grayscale brightness-75" : ""
+                  }`}
+                />
+              ) : (
+                <div className={`h-full w-full bg-slate-100 flex items-center justify-center ${
+                  !item.isAvailable ? "brightness-75" : ""
+                }`}>
+                  <span className="text-4xl">🍽️</span>
+                </div>
+              )}
               {!item.isAvailable && (
                 <span className="absolute top-3 left-3 bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full backdrop-blur-sm">
                   Unavailable
