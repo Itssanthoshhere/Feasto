@@ -8,11 +8,15 @@ import RestaurantCard from "../components/RestaurantCard";
 import { BiSearch, BiMapAlt } from "react-icons/bi";
 
 const Home = () => {
-  const { location } = useAppData();
+  const { location, loadingLocation } = useAppData();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const search = searchParams.get("search") || "";
   const [searchInput, setSearchInput] = useState(search);
+
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
 
   const [restaurants, setRestaurants] = useState<IRestaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +43,8 @@ const Home = () => {
   };
 
   const fetchRestaurants = async () => {
-    if (!location?.latitude || !location?.longitude) {
+    if (location?.latitude == null || location?.longitude == null) {
+      setLoading(false);
       return;
     }
 
@@ -81,7 +86,7 @@ const Home = () => {
     }
   };
 
-  if (loading || !location) {
+  if (loading || loadingLocation) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4 animate-pulse">

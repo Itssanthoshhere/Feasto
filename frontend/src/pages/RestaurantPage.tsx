@@ -53,6 +53,9 @@ const RestaurantPage = () => {
 
   useEffect(() => {
     if (id) {
+      setLoading(true);
+      setRestaurant(null);
+      setMenuItems([]);
       fetchRestaurant();
       fetchMenuItems();
     }

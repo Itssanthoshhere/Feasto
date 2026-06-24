@@ -64,9 +64,16 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           );
           const data = await res.json();
 
-          const city = data.city || data.locality || "Your Location";
-          const formattedAddress = data.locality 
-            ? `${data.locality}, ${data.principalSubdivision}, ${data.countryName}`
+          const city = data.city || data.locality || data.principalSubdivision || "Your Location";
+          
+          const addressParts = [
+            data.locality,
+            data.principalSubdivision,
+            data.countryName
+          ].filter(Boolean);
+
+          const formattedAddress = addressParts.length > 0 
+            ? addressParts.join(", ")
             : "Current Location";
 
           setLocation({

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { BiMapPin } from "react-icons/bi";
 
 type props = {
@@ -10,13 +10,12 @@ type props = {
 };
 
 const RestaurantCard = ({ id, image, name, distance, isOpen }: props) => {
-  const navigate = useNavigate();
   return (
-    <div
-      className={`relative bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 ${
+    <Link
+      to={`/restaurant/${id}`}
+      className={`group relative bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] cursor-pointer overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 ${
         !isOpen ? "opacity-80" : ""
       }`}
-      onClick={() => navigate(`/restaurant/${id}`)}
     >
       <div className="relative h-48 w-full overflow-hidden bg-slate-100">
         <img
@@ -69,7 +68,7 @@ const RestaurantCard = ({ id, image, name, distance, isOpen }: props) => {
           </svg>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
