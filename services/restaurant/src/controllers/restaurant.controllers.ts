@@ -204,7 +204,20 @@ export const getNearbyRestaurant = TryCatch(async (req, res) => {
   };
 
   if (search && typeof search === "string") {
-    query.name = { $regex: search, $options: "i" };
+    query.$or = [
+      {
+        name: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: search,
+          $options: "i",
+        },
+      },
+    ];
   }
 
   const restaurants = await Restaurant.aggregate([
@@ -244,5 +257,12 @@ export const getNearbyRestaurant = TryCatch(async (req, res) => {
 
 export const fetchSingleRestaurant = TryCatch(async (req, res) => {
   const restaurant = await Restaurant.findById(req.params.id);
+  
+  if (!restaurant) {
+    return res.status(404).json({
+      message: "Restaurant not found",
+    });
+  }
+
   res.json(restaurant);
 });
