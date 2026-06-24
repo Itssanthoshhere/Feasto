@@ -159,11 +159,21 @@ export const updateRestaurant = TryCatch(
       });
     }
 
-    const { name, description } = req.body;
+    const { name, description, latitude, longitude, formattedAddress } = req.body;
+
+    const updateData: any = { name, description };
+
+    if (latitude && longitude && formattedAddress) {
+      updateData.autoLocation = {
+        type: "Point",
+        coordinates: [Number(longitude), Number(latitude)],
+        formattedAddress,
+      };
+    }
 
     const restaurant = await Restaurant.findOneAndUpdate(
       { ownerId: req.user._id },
-      { name: name, description: description },
+      updateData,
       { new: true },
     );
 
