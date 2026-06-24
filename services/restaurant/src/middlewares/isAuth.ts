@@ -40,9 +40,18 @@ export const isAuth = async (
       return;
     }
 
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error("Auth Middleware Error: JWT_SECRET is not configured");
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+      return;
+    }
+
     const decodedValue = jwt.verify(
       token,
-      process.env.JWT_SECRET as string,
+      jwtSecret,
     ) as JwtPayload;
 
     if (!decodedValue || !decodedValue.user) {
