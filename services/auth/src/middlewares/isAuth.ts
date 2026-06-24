@@ -48,8 +48,15 @@ export const isAuth = async (
     req.user = decodedValue.user;
     next();
   } catch (error) {
-    res.status(401).json({
-      message: "Please Login - Jwt error",
-    });
+    if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({
+        message: "Please Login - Invalid token",
+      });
+    } else {
+      console.error("Auth Middleware Error:", error);
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+    }
   }
 };
