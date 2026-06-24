@@ -22,9 +22,16 @@ export const addMenuItem = TryCatch(async (req: AuthenticatedRequest, res) => {
 
   const { name, description, price } = req.body;
 
-  if (!name || !price) {
+  if (!name || price === undefined || price === null || price === "") {
     return res.status(400).json({
       message: "Name and price are required",
+    });
+  }
+
+  const parsedPrice = Number(price);
+  if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+    return res.status(400).json({
+      message: "Price must be a valid non-negative number",
     });
   }
 
@@ -54,12 +61,13 @@ export const addMenuItem = TryCatch(async (req: AuthenticatedRequest, res) => {
     {
       buffer: fileBuffer.content,
     },
+    { timeout: 10000 }
   );
 
   const item = await MenuItems.create({
     name,
     description,
-    price,
+    price: parsedPrice,
     restaurantId: restaurant._id,
     image: uploadResult.url,
   });

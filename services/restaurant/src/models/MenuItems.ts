@@ -4,10 +4,10 @@ export interface IMenuItem extends Document {
   restaurantId: mongoose.Types.ObjectId;
   name: string;
   description: string;
-  image?: string;
+  image: string;
   price: number;
   isAvailable: boolean;
-  createsAt: Date;
+  createdAt: Date;
   updatedAt: Date;
 }
 
