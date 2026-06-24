@@ -60,22 +60,29 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
           );
           const data = await res.json();
+
+          const city = data.city || data.locality || data.principalSubdivision || "Your Location";
+          
+          const addressParts = [
+            data.locality,
+            data.principalSubdivision,
+            data.countryName
+          ].filter(Boolean);
+
+          const formattedAddress = addressParts.length > 0 
+            ? addressParts.join(", ")
+            : "Current Location";
 
           setLocation({
             latitude,
             longitude,
-            formattedAddress: data.display_name || "current location",
+            formattedAddress,
           });
 
-          setCity(
-            data.address.city ||
-              data.address.town ||
-              data.address.village ||
-              "Your Location",
-          );
+          setCity(city);
           setLoadingLocation(false);
         } catch (error) {
           setLocation({

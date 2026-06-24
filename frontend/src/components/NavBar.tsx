@@ -1,29 +1,25 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppData } from "../context/AppContext";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CgShoppingCart } from "react-icons/cg";
 import { BiMapPin, BiSearch } from "react-icons/bi";
 
 const Navbar = () => {
-  const { isAuth, city } = useAppData();
   const currLocation = useLocation();
-
+  const navigate = useNavigate();
   const isHomePage = currLocation.pathname === "/";
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const { isAuth, city } = useAppData();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (search) {
-        setSearchParams({ search });
-      } else {
-        setSearchParams({});
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [search, setSearchParams]);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      navigate(`/`);
+    }
+  };
 
   return (
     <div className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-xl border-b border-slate-200/60 shadow-sm transition-all duration-300">
@@ -74,29 +70,36 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Search Bar (Center) */}
-        {isHomePage && (
-          <div className="flex-1 w-full max-w-2xl mx-auto animate-fade-in-up md:animate-none">
+        {!isHomePage ? (
+          <form onSubmit={handleSearch} className="flex-1 w-full max-w-2xl mx-auto animate-fade-in-up md:animate-none">
             <div className="flex items-center w-full rounded-full border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md focus-within:border-[#FF5A1F]/50 focus-within:ring-4 focus-within:ring-[#FF5A1F]/10">
-              {/* Location Pill */}
-              <div className="flex items-center gap-1.5 rounded-l-full bg-slate-50 px-4 py-2.5 text-slate-600 border-r border-slate-200 transition-colors hover:bg-slate-100 cursor-pointer">
+              <div className="hidden sm:flex items-center gap-1.5 rounded-l-full bg-slate-50 px-4 py-2.5 text-slate-600 border-r border-slate-200 transition-colors hover:bg-slate-100 cursor-pointer">
                 <BiMapPin className="h-5 w-5 text-[#FF5A1F]" />
-                <span className="max-w-[100px] sm:max-w-[150px] truncate text-sm font-semibold">
+                <span className="max-w-[100px] truncate text-sm font-semibold">
                   {city || "Select Location"}
                 </span>
               </div>
 
-              {/* Search Input */}
+              {/* Search */}
               <div className="flex flex-1 items-center gap-2 px-4 py-2.5">
                 <BiSearch className="h-5 w-5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search for restaurants, cuisines..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 placeholder:font-normal"
                 />
               </div>
+            </div>
+          </form>
+        ) : (
+          <div className="flex-1 flex items-center justify-center w-full animate-fade-in-up md:animate-none my-2 md:my-0">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/50 backdrop-blur-sm px-5 py-2 shadow-sm transition-all hover:shadow-md hover:bg-white cursor-pointer group">
+              <BiMapPin className="h-5 w-5 text-[#FF5A1F] transition-transform group-hover:scale-110" />
+              <span className="max-w-[150px] sm:max-w-[200px] truncate text-sm font-extrabold text-slate-700">
+                {city || "Fetching location..."}
+              </span>
             </div>
           </div>
         )}
