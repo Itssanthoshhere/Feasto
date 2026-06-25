@@ -7,6 +7,7 @@ import { VscLoading } from "react-icons/vsc";
 import axios from "axios";
 import { restaurantService } from "../main";
 import toast from "react-hot-toast";
+import { useAppData } from "../context/AppContext";
 
 interface MenuItemsProps {
   items: IMenuItem[];
@@ -16,6 +17,7 @@ interface MenuItemsProps {
 
 const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
+  const { fetchCart } = useAppData();
 
   const handleDelete = async (itemId: string) => {
     const confirm = window.confirm("Are you sure you want to delete this item");
@@ -61,17 +63,43 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-16">
-        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex items-center justify-center w-16 h-16 mb-4 border bg-slate-50 rounded-2xl border-slate-100">
           <span className="text-2xl">📋</span>
         </div>
         <h2 className="text-lg font-bold text-slate-800">Your Menu is Empty</h2>
-        <p className="text-sm font-medium text-slate-500 mt-2 max-w-sm">
+        <p className="max-w-sm mt-2 text-sm font-medium text-slate-500">
           Start adding delicious items to your menu to attract customers.
         </p>
       </div>
     );
   }
+
+  const addToCart = async (restaurantId: string, itemId: string) => {
+    try {
+      setLoadingItemId(itemId);
+
+      const { data } = await axios.post(
+        `${restaurantService}/api/cart/add`,
+        {
+          restaurantId,
+          itemId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      toast.success(data.message);
+      fetchCart();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to add item to cart");
+    } finally {
+      setLoadingItemId(null);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -85,7 +113,7 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
             }`}
             key={item._id}
           >
-            <div className="relative h-36 w-full overflow-hidden">
+            <div className="relative w-full overflow-hidden h-36">
               {item.image ? (
                 <img
                   src={item.image}
@@ -95,9 +123,11 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
                   }`}
                 />
               ) : (
-                <div className={`h-full w-full bg-slate-100 flex items-center justify-center ${
-                  !item.isAvailable ? "brightness-75" : ""
-                }`}>
+                <div
+                  className={`h-full w-full bg-slate-100 flex items-center justify-center ${
+                    !item.isAvailable ? "brightness-75" : ""
+                  }`}
+                >
                   <span className="text-4xl">🍽️</span>
                 </div>
               )}
@@ -106,17 +136,17 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
                   Unavailable
                 </span>
               )}
-              <span className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-slate-800 text-sm font-extrabold px-3 py-1 rounded-full shadow-sm">
+              <span className="absolute px-3 py-1 text-sm font-extrabold rounded-full shadow-sm bottom-3 right-3 bg-white/90 backdrop-blur-sm text-slate-800">
                 ₹{item.price}
               </span>
             </div>
 
             <div className="p-4">
-              <h3 className="font-bold text-slate-800 text-base">
+              <h3 className="text-base font-bold text-slate-800">
                 {item.name}
               </h3>
               {item.description && (
-                <p className="line-clamp-2 text-sm font-medium text-slate-500 mt-1">
+                <p className="mt-1 text-sm font-medium line-clamp-2 text-slate-500">
                   {item.description}
                 </p>
               )}
@@ -147,7 +177,7 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
 
                     <button
                       onClick={() => handleDelete(item._id)}
-                      className="rounded-xl p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      className="p-2 text-red-400 transition-colors rounded-xl hover:bg-red-50 hover:text-red-600"
                       title="Delete item"
                     >
                       <BiTrash size={16} />
@@ -158,7 +188,7 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
                 {!isSeller && (
                   <button
                     disabled={!item.isAvailable || isLoading}
-                    onClick={() => (item.restaurantId, item._id)}
+                    onClick={() => addToCart(item.restaurantId, item._id)}
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-bold transition-all ${
                       !item.isAvailable || isLoading
                         ? "cursor-not-allowed text-slate-300 bg-slate-50"

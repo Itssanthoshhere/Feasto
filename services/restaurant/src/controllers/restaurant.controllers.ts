@@ -159,7 +159,8 @@ export const updateRestaurant = TryCatch(
       });
     }
 
-    const { name, description, latitude, longitude, formattedAddress } = req.body;
+    const { name, description, latitude, longitude, formattedAddress } =
+      req.body;
 
     const updateData: any = { name, description };
 
@@ -230,7 +231,7 @@ export const getNearbyRestaurant = TryCatch(async (req, res) => {
         distanceField: "distance",
         maxDistance: Number(radius),
         spherical: true,
-        query,
+        // query,
       },
     },
     {
@@ -257,7 +258,7 @@ export const getNearbyRestaurant = TryCatch(async (req, res) => {
 
 export const fetchSingleRestaurant = TryCatch(async (req, res) => {
   const restaurant = await Restaurant.findById(req.params.id);
-  
+
   if (!restaurant) {
     return res.status(404).json({
       message: "Restaurant not found",
