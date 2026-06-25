@@ -95,7 +95,7 @@ const MenuItems = ({ items, onItemDeleted, isSeller }: MenuItemsProps) => {
       toast.success(data.message);
       fetchCart();
     } catch (error: any) {
-      toast.error(error.response.data.message);
+      toast.error(error?.response?.data?.message || "Failed to add item to cart");
     } finally {
       setLoadingItemId(null);
     }
