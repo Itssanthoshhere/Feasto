@@ -231,7 +231,7 @@ export const getNearbyRestaurant = TryCatch(async (req, res) => {
         distanceField: "distance",
         maxDistance: Number(radius),
         spherical: true,
-        query,
+        // query,
       },
     },
     {

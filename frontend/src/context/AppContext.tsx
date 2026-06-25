@@ -60,7 +60,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
       setCart(data.cart || []);
       setSubTotal(data.subtotal || 0);
-      setQuantity(data.cartLength);
+      setQuantity(data.cartLength || 0);
     } catch (error) {
       console.log(error);
     }

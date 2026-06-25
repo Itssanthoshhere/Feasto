@@ -32,6 +32,10 @@ export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
     return res.status(404).json({ message: "Restaurant or item not found" });
   }
 
+  if (menuItem.restaurantId.toString() !== restaurantId.toString()) {
+    return res.status(400).json({ message: "Item does not belong to this restaurant" });
+  }
+
   if (!menuItem.isAvailable) {
     return res.status(400).json({ message: "This item is currently unavailable." });
   }
@@ -83,18 +87,25 @@ export const fetchMyCart = TryCatch(async (req: AuthenticatedRequest, res) => {
   let subtotal = 0;
   let cartLength = 0;
 
+  const validCartItems = [];
+
   for (const cartItem of cartItems) {
     const item = cartItem.itemId as unknown as IMenuItem;
+    if (!item) {
+      await Cart.findByIdAndDelete(cartItem._id);
+      continue;
+    }
 
     subtotal += item.price * cartItem.quantity;
     cartLength += cartItem.quantity;
+    validCartItems.push(cartItem);
   }
 
   return res.json({
     success: true,
     cartLength,
     subtotal,
-    cart: cartItems,
+    cart: validCartItems,
   });
 });
 
