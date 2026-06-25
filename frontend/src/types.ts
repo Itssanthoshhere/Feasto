@@ -65,6 +65,6 @@ export interface ICart {
   restaurantId: string | IRestaurant;
   itemId: string | IMenuItem;
   quantity: number;
-  cretedAt: Date;
+  createdAt: Date;
   updatedAt: Date;
 }

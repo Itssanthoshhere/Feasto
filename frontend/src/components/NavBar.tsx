@@ -48,7 +48,7 @@ const Navbar = () => {
             >
               <CgShoppingCart className="w-6 h-6" />
               <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF5A1F] text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
-                0
+                {quantity}
               </span>
             </Link>
 

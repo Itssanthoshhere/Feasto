@@ -5,7 +5,7 @@ export interface ICart extends Document {
   restaurantId: mongoose.Types.ObjectId;
   itemId: mongoose.Types.ObjectId;
   quantity: number;
-  cretedAt: Date;
+  createdAt: Date;
   updatedAt: Date;
 }
 

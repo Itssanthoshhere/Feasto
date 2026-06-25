@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/isAuth.js";
 import TryCatch from "../middlewares/trycatch.js";
 import Cart from "../models/cart.js";
+import Restaurant from "../models/Restaurant.js";
+import MenuItem, { IMenuItem } from "../models/MenuItems.js";
 
 export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
   if (!req.user) {
@@ -21,6 +23,21 @@ export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
     return res.status(400).json({
       message: "Invalid restaurant and item id",
     });
+  }
+
+  const restaurant = await Restaurant.findById(restaurantId);
+  const menuItem = await MenuItem.findById(itemId);
+
+  if (!restaurant || !menuItem) {
+    return res.status(404).json({ message: "Restaurant or item not found" });
+  }
+
+  if (!menuItem.isAvailable) {
+    return res.status(400).json({ message: "This item is currently unavailable." });
+  }
+
+  if (!restaurant.isOpen || !restaurant.isVerified) {
+    return res.status(400).json({ message: "Restaurant is closed or not verified." });
   }
 
   const cartFromDifferentRestaurant = await Cart.findOne({
@@ -60,14 +77,14 @@ export const fetchMyCart = TryCatch(async (req: AuthenticatedRequest, res) => {
   const userId = req.user._id;
 
   const cartItems = await Cart.find({ userId })
-    .populate("itemId")
-    .populate("restaurantId");
+    .populate("itemId", "name image price isAvailable")
+    .populate("restaurantId", "name image autoLocation isOpen");
 
   let subtotal = 0;
   let cartLength = 0;
 
   for (const cartItem of cartItems) {
-    const item: any = cartItem.itemId;
+    const item = cartItem.itemId as unknown as IMenuItem;
 
     subtotal += item.price * cartItem.quantity;
     cartLength += cartItem.quantity;
