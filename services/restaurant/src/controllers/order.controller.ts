@@ -170,8 +170,6 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
       { session },
     );
 
-    await Cart.deleteMany({ userId: user._id }, { session });
-
     await session.commitTransaction();
     session.endSession();
 

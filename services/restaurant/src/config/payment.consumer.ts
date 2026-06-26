@@ -1,5 +1,6 @@
 import axios from "axios";
 import Order from "../models/Order.js";
+import Cart from "../models/cart.js";
 import { getChannel } from "./rabbitmq.js";
 
 export const startPaymentConsumer = async () => {
@@ -40,6 +41,8 @@ export const startPaymentConsumer = async () => {
         return;
       }
 
+      await Cart.deleteMany({ userId: order.userId });
+
       console.log("✅Order Placed:", order._id);
 
       //   socket work
@@ -62,6 +65,7 @@ export const startPaymentConsumer = async () => {
       channel.ack(msg);
     } catch (error) {
       console.error("❌ Payment cosumer error:", error);
+      channel.nack(msg, false, false);
     }
   });
 };

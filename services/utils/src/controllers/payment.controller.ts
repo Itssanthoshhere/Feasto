@@ -48,6 +48,26 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     });
   }
 
+  // Idempotency Check
+  try {
+    const { data: order } = await axios.get(
+      `${process.env.RESTAURANT_SERVICE}/api/order/payment/${orderId}`,
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+        },
+      },
+    );
+
+    if (order.paymentStatus === "paid") {
+      return res.json({
+        message: "Payment already verified",
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching order for idempotency check", error);
+  }
+
   await publishPaymentSuccess({
     orderId,
     paymentId: razorpay_payment_id,
@@ -133,6 +153,32 @@ export const verifyStripePayment = async (req: Request, res: Response) => {
       return res.status(400).json({
         message: "orderId not found in stripe session",
       });
+    }
+
+    if (session.payment_status !== "paid") {
+      return res.status(400).json({
+        message: "Payment not completed",
+      });
+    }
+
+    // Idempotency Check
+    try {
+      const { data: order } = await axios.get(
+        `${process.env.RESTAURANT_SERVICE}/api/order/payment/${orderId}`,
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+          },
+        },
+      );
+
+      if (order.paymentStatus === "paid") {
+        return res.json({
+          message: "Payment already verified",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching order for idempotency check", error);
     }
 
     await publishPaymentSuccess({
