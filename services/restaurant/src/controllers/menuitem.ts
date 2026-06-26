@@ -170,10 +170,90 @@ export const toggleMenuItemAvailabilty = TryCatch(
     await item.save();
 
     res.json({
-      message: `Item Marked as ${
-        item.isAvailable ? "available" : "unavailable"
-      }`,
+      message: `Item Marked as ${item.isAvailable ? "available" : "unavailable"
+        }`,
       item,
     });
   },
 );
+
+export const editMenuItem = TryCatch(async (req: AuthenticatedRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({
+      message: "Please login",
+    });
+  }
+
+  const { itemId } = req.params;
+  if (!itemId) {
+    return res.status(400).json({
+      message: "Id is required",
+    });
+  }
+
+  const item = await MenuItems.findById(itemId);
+
+  if (!item) {
+    return res.status(404).json({
+      message: "No item found",
+    });
+  }
+
+  const restaurant = await Restaurant.findOne({
+    _id: item.restaurantId,
+    ownerId: req.user._id,
+  });
+
+  if (!restaurant) {
+    return res.status(404).json({
+      message: "No Restaurant found or unauthorized",
+    });
+  }
+
+  const { name, description, price } = req.body;
+
+  if (name) item.name = name;
+  if (description !== undefined) item.description = description;
+
+  if (price !== undefined && price !== null && price !== "") {
+    const parsedPrice = Number(price);
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({
+        message: "Price must be a valid non-negative number",
+      });
+    }
+    item.price = parsedPrice;
+  }
+
+  const file = req.file;
+
+  if (file) {
+    const fileBuffer = getBuffer(file);
+    if (!fileBuffer?.content) {
+      return res.status(500).json({
+        message: "Failed to create file buffer",
+      });
+    }
+
+    console.log(
+      "[restaurant:item:edit] Uploading new image via utils:",
+      process.env.UTILS_SERVICE,
+    );
+
+    const { data: uploadResult } = await axios.post(
+      `${process.env.UTILS_SERVICE}/api/upload`,
+      {
+        buffer: fileBuffer.content,
+      },
+      { timeout: 10000 }
+    );
+    item.image = uploadResult.url;
+  }
+
+  await item.save();
+
+  res.json({
+    message: "Item updated successfully",
+    item,
+  });
+});
