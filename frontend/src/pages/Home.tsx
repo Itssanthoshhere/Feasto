@@ -168,12 +168,14 @@ const Home = () => {
             {restaurants.map((res) => {
               const [resLng, resLat] = res.autoLocation.coordinates;
 
-              const distance = getDistanceKm(
-                location.latitude,
-                location.longitude,
-                resLat,
-                resLng,
-              );
+              const distance = location
+                ? getDistanceKm(
+                    location.latitude,
+                    location.longitude,
+                    resLat,
+                    resLng,
+                  )
+                : null;
 
               return (
                 <div key={res._id} className="group">
