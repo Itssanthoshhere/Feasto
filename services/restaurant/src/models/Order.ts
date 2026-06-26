@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IOrder extends Document {
-  userId: string;
-  restaurantId: string;
+  userId: mongoose.Types.ObjectId;
+  restaurantId: mongoose.Types.ObjectId;
   restaurantName: string;
-  riderId?: string | null;
+  riderId?: mongoose.Types.ObjectId | null;
   riderPhone: number | null;
   riderName: string | null;
   distance: number;
@@ -19,13 +19,13 @@ export interface IOrder extends Document {
 
   subtotal: number;
   deliveryFee: number;
-  platfromFee: number;
+  platformFee: number;
   totalAmount: number;
 
-  addressId: string;
+  addressId: mongoose.Types.ObjectId;
 
   deliveryAddress: {
-    fromattedAddress: string;
+    formattedAddress: string;
     mobile: number;
     latitude: number;
     longitude: number;
@@ -53,11 +53,13 @@ export interface IOrder extends Document {
 const OrderSchema = new Schema<IOrder>(
   {
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     restaurantId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Restaurant",
       required: true,
     },
     restaurantName: {
@@ -65,7 +67,8 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
     },
     riderId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Rider",
       default: null,
     },
     riderName: {
@@ -96,16 +99,17 @@ const OrderSchema = new Schema<IOrder>(
 
     subtotal: Number,
     deliveryFee: Number,
-    platfromFee: Number,
+    platformFee: Number,
     totalAmount: Number,
 
     addressId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Address",
       required: true,
     },
 
     deliveryAddress: {
-      fromattedAddress: { type: String, required: true },
+      formattedAddress: { type: String, required: true },
       mobile: { type: Number, required: true },
       latitude: Number,
       longitude: Number,
@@ -147,5 +151,11 @@ const OrderSchema = new Schema<IOrder>(
     timestamps: true,
   },
 );
+
+OrderSchema.index({ userId: 1 });
+OrderSchema.index({ restaurantId: 1 });
+OrderSchema.index({ status: 1 });
+OrderSchema.index({ paymentStatus: 1 });
+OrderSchema.index({ riderId: 1, status: 1 });
 
 export default mongoose.model<IOrder>("Order", OrderSchema);

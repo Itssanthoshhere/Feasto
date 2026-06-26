@@ -88,8 +88,8 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   });
 
   const deliveryFee = subtotal < 250 ? 49 : 0;
-  const platfromFee = 7;
-  const totalAmount = subtotal + deliveryFee + platfromFee;
+  const platformFee = 7;
+  const totalAmount = subtotal + deliveryFee + platformFee;
 
   const riderAmount = Math.ceil(distance) * 17;
 
@@ -98,8 +98,8 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   const [longitude, latitude] = address.location.coordinates;
 
   const order = await Order.create({
-    userId: user._id.toString(),
-    restaurantId: restaurantId.toString(),
+    userId: user._id,
+    restaurantId: restaurantId,
     restaurantName: restaurant.name,
     riderId: null,
     distance,
@@ -107,11 +107,11 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     items: orderItems,
     subtotal,
     deliveryFee,
-    platfromFee,
+    platformFee,
     totalAmount,
-    addressId: address._id.toString(),
+    addressId: address._id,
     deliveryAddress: {
-      fromattedAddress: address.formattedAddress,
+      formattedAddress: address.formattedAddress,
       mobile: address.mobile,
       latitude,
       longitude,
