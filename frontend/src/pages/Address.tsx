@@ -27,6 +27,8 @@ const AddAddressPage = () => {
   const [formattedAddress, setFormattedAddress] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [isManualLocation, setIsManualLocation] = useState(false);
+  const [manualAddress, setManualAddress] = useState("");
 
   const handleLocationSelect = (lat: number, lng: number, address: string) => {
     setLatitude(lat);
@@ -56,30 +58,66 @@ const AddAddressPage = () => {
 
   // Add address
   const addAddress = async () => {
+    let finalLat = latitude;
+    let finalLng = longitude;
+    let finalFormattedAddress = formattedAddress;
+
+    if (isManualLocation) {
+      if (!manualAddress.trim()) {
+        toast.error("Please enter your manual address");
+        return;
+      }
+      try {
+        setAdding(true);
+        const res = await axios.get(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+            manualAddress,
+          )}&format=json&limit=1`,
+        );
+        if (res.data && res.data.length > 0) {
+          finalLat = parseFloat(res.data[0].lat);
+          finalLng = parseFloat(res.data[0].lon);
+          finalFormattedAddress = res.data[0].display_name || manualAddress;
+        } else {
+          toast.error(
+            "Could not find coordinates for this address. Please try being more specific.",
+          );
+          setAdding(false);
+          return;
+        }
+      } catch {
+        toast.error("Failed to verify manual address");
+        setAdding(false);
+        return;
+      }
+    }
+
     if (
       !mobile ||
-      !formattedAddress ||
-      latitude === null ||
-      longitude === null
+      !finalFormattedAddress ||
+      finalLat === null ||
+      finalLng === null
     ) {
-      toast.error("Please fill all details and select location on map");
+      toast.error("Please fill all details and select location");
+      if (isManualLocation) setAdding(false);
       return;
     }
 
     if (mobile.length < 10) {
       toast.error("Please enter a valid mobile number");
+      if (isManualLocation) setAdding(false);
       return;
     }
 
     try {
-      setAdding(true);
+      if (!isManualLocation) setAdding(true);
       await axios.post(
         `${restaurantService}/api/address/new`,
         {
-          formattedAddress,
+          formattedAddress: finalFormattedAddress,
           mobile,
-          latitude,
-          longitude,
+          latitude: finalLat,
+          longitude: finalLng,
         },
         {
           headers: {
@@ -90,9 +128,10 @@ const AddAddressPage = () => {
       toast.success("Address added successfully");
       setMobile("");
       setFormattedAddress("");
-
       setLatitude(null);
       setLongitude(null);
+      setIsManualLocation(false);
+      setManualAddress("");
       fetchAddresses();
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -148,20 +187,62 @@ const AddAddressPage = () => {
                 Pinpoint your location on the map for accurate delivery
               </p>
 
-              {/* Map */}
-              <div className="relative h-64 sm:h-80 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 mb-6 group">
-                <MapSelector
-                  latitude={latitude}
-                  longitude={longitude}
-                  onLocationSelect={handleLocationSelect}
-                />
-                {/* Map Overlay Prompt */}
-                {!latitude && !longitude && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 backdrop-blur-[2px] pointer-events-none transition-opacity group-hover:opacity-0">
-                    <div className="bg-white px-4 py-2 rounded-xl shadow-lg font-bold text-sm text-[#FF5A1F] flex items-center gap-2">
-                      <LuMapPin size={18} />
-                      Click on the map to set location
-                    </div>
+              {/* Map / Manual Toggle */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between ml-1 mb-2">
+                  <label className="block text-sm font-bold text-slate-700">
+                    Location Details
+                  </label>
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setIsManualLocation(false)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                        !isManualLocation
+                          ? "bg-white text-[#FF5A1F] shadow-sm"
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      Map Picker
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsManualLocation(true)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                        isManualLocation
+                          ? "bg-white text-[#FF5A1F] shadow-sm"
+                          : "text-slate-500 hover:text-slate-700"
+                      }`}
+                    >
+                      Manual Entry
+                    </button>
+                  </div>
+                </div>
+
+                {isManualLocation ? (
+                  <textarea
+                    placeholder="Enter your full address (e.g. 123 Main St, City, State, Zip)"
+                    value={manualAddress}
+                    onChange={(e) => setManualAddress(e.target.value)}
+                    rows={2}
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FF5A1F] focus:ring-4 focus:ring-[#FF5A1F]/10 mb-6"
+                  />
+                ) : (
+                  <div className="relative h-64 sm:h-80 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 mb-6 group">
+                    <MapSelector
+                      latitude={latitude}
+                      longitude={longitude}
+                      onLocationSelect={handleLocationSelect}
+                    />
+                    {/* Map Overlay Prompt */}
+                    {!latitude && !longitude && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 backdrop-blur-[2px] pointer-events-none transition-opacity group-hover:opacity-0">
+                        <div className="bg-white px-4 py-2 rounded-xl shadow-lg font-bold text-sm text-[#FF5A1F] flex items-center gap-2">
+                          <LuMapPin size={18} />
+                          Click on the map to set location
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -209,7 +290,12 @@ const AddAddressPage = () => {
 
                 {/* Save */}
                 <button
-                  disabled={adding || !latitude || !longitude || !mobile}
+                  disabled={
+                    adding ||
+                    (!isManualLocation && (!latitude || !longitude)) ||
+                    (isManualLocation && !manualAddress) ||
+                    !mobile
+                  }
                   onClick={addAddress}
                   className="w-full mt-4 flex items-center justify-center gap-2 rounded-2xl bg-[#FF5A1F] py-3.5 text-sm font-bold text-white shadow-md shadow-[#FF5A1F]/20 transition-all hover:bg-[#e8521c] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FF5A1F] disabled:active:scale-100"
                 >
