@@ -324,7 +324,11 @@ const Navbar = () => {
               </div>
               <button
                 onClick={confirmLocation}
-                disabled={(!isManualLocation && !pendingLocation) || (isManualLocation && !manualAddress.trim()) || isVerifyingAddress}
+                disabled={
+                  (!isManualLocation && !pendingLocation) ||
+                  (isManualLocation && !manualAddress.trim()) ||
+                  isVerifyingAddress
+                }
                 className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#FF5A1F] py-3 text-sm font-bold text-white shadow-md shadow-[#FF5A1F]/20 transition-all hover:bg-[#e8521c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#FF5A1F]"
               >
                 {isVerifyingAddress ? (
