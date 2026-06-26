@@ -24,10 +24,10 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
   const [isManualLocation, setIsManualLocation] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
   const [mapLat, setMapLat] = useState<number | null>(
-    restaurant.autoLocation?.coordinates[1] || null,
+    restaurant.autoLocation?.coordinates[1] ?? null,
   );
   const [mapLng, setMapLng] = useState<number | null>(
-    restaurant.autoLocation?.coordinates[0] || null,
+    restaurant.autoLocation?.coordinates[0] ?? null,
   );
   const [mapAddress, setMapAddress] = useState("");
   const [isOpen, setIsOpen] = useState(restaurant.isOpen);
@@ -108,6 +108,8 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
       toast.success(data.message);
       onUpdate(data.restaurant);
       setAddress(data.restaurant.autoLocation?.formattedAddress || "");
+      setMapLat(data.restaurant.autoLocation?.coordinates[1] ?? null);
+      setMapLng(data.restaurant.autoLocation?.coordinates[0] ?? null);
       setMapAddress("");
       setEditMode(false);
     } catch (error) {
@@ -198,8 +200,8 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
                   setDescription(restaurant.description || "");
                   setAddress(restaurant.autoLocation?.formattedAddress || "");
                   setMapAddress("");
-                  setMapLat(restaurant.autoLocation?.coordinates[1] || null);
-                  setMapLng(restaurant.autoLocation?.coordinates[0] || null);
+                  setMapLat(restaurant.autoLocation?.coordinates[1] ?? null);
+                  setMapLng(restaurant.autoLocation?.coordinates[0] ?? null);
                   setIsManualLocation(false);
                   setManualAddress("");
                 }

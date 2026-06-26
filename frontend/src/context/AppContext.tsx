@@ -22,8 +22,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   const [location, setLocation] = useState<LocationData | null>(() => {
-    const saved = localStorage.getItem("userLocation");
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem("userLocation");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [city, setCity] = useState(() => {

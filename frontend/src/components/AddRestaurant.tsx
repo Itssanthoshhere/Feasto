@@ -31,8 +31,8 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
       return;
     }
 
-    let finalLat = mapLat || location?.latitude;
-    let finalLng = mapLng || location?.longitude;
+    let finalLat = mapLat ?? location?.latitude;
+    let finalLng = mapLng ?? location?.longitude;
     let finalAddress = mapAddress || location?.formattedAddress;
 
     if (isManualLocation) {
@@ -61,8 +61,9 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
       }
     }
 
-    if (!finalLat || !finalLng || !finalAddress) {
+    if (finalLat == null || finalLng == null || !finalAddress) {
       toast.error("Please pick a location on the map or enter manually");
+      if (isManualLocation) setSubmitting(false);
       return;
     }
 

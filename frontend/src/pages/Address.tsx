@@ -105,8 +105,8 @@ const AddAddressPage = () => {
       return;
     }
 
-    if (mobile.length < 10) {
-      toast.error("Please enter a valid mobile number");
+    if (mobile.length !== 10) {
+      toast.error("Please enter a valid 10-digit mobile number");
       if (isManualLocation) setAdding(false);
       return;
     }
