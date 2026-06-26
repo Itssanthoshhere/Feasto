@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AppProvider } from "./context/AppContext.tsx";
+import "leaflet/dist/leaflet.css";
 
 export const authService =
   import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost:8000";

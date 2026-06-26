@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { restaurantService } from "../main";
 import { BiMapPin, BiUpload, BiStore, BiImageAdd } from "react-icons/bi";
+import { MapSelector } from "./MapSelector";
 
 interface props {
   fetchMyRestaurant: () => Promise<void>;
@@ -17,6 +18,9 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
   const [submitting, setSubmitting] = useState(false);
   const [isManualLocation, setIsManualLocation] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
+  const [mapLat, setMapLat] = useState<number | null>(null);
+  const [mapLng, setMapLng] = useState<number | null>(null);
+  const [mapAddress, setMapAddress] = useState("");
 
   const { loadingLocation, location } = useAppData();
 
@@ -26,9 +30,9 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
       return;
     }
 
-    let finalLat = location?.latitude;
-    let finalLng = location?.longitude;
-    let finalAddress = location?.formattedAddress;
+    let finalLat = mapLat || location?.latitude;
+    let finalLng = mapLng || location?.longitude;
+    let finalAddress = mapAddress || location?.formattedAddress;
 
     if (isManualLocation) {
       if (!manualAddress.trim()) {
@@ -37,7 +41,6 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
       }
       try {
         setSubmitting(true);
-        // Forward geocoding to get coordinates for the manual address
         const res = await axios.get(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
             manualAddress,
@@ -54,16 +57,16 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
           setSubmitting(false);
           return;
         }
-      } catch (error) {
+      } catch {
         toast.error("Failed to verify manual address");
         setSubmitting(false);
         return;
       }
-    } else {
-      if (!location) {
-        toast.error("Current location is not available");
-        return;
-      }
+    }
+
+    if (!finalLat || !finalLng || !finalAddress) {
+      toast.error("Please pick a location on the map or enter manually");
+      return;
     }
 
     const formData = new FormData();
@@ -86,8 +89,14 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
 
       toast.success("Restaurant Added successfully");
       fetchMyRestaurant();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to add restaurant");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message || "Failed to add restaurant",
+        );
+      } else {
+        toast.error("Failed to add restaurant");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -194,13 +203,13 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
             </label>
           </div>
 
-          {/* Location Toggle & Input Manual Entry */}
+          {/* Location Toggle & Input */}
           <div className="space-y-3">
             <div className="flex items-center justify-between ml-1">
               <label className="block text-sm font-bold text-slate-700">
                 Location Details
               </label>
-              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setIsManualLocation(false)}
@@ -210,7 +219,7 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
                       : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
-                  Auto GPS
+                  Map Picker
                 </button>
                 <button
                   type="button"
@@ -235,21 +244,55 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
                 className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FF5A1F] focus:ring-4 focus:ring-[#FF5A1F]/10"
               />
             ) : (
-              <div className="flex items-start gap-3 rounded-2xl bg-slate-50 border border-slate-100 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF5A1F]/10 text-[#FF5A1F]">
-                  <BiMapPin className="h-5 w-5" />
+              <>
+                <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 group">
+                  <MapSelector
+                    latitude={mapLat || location?.latitude || null}
+                    longitude={mapLng || location?.longitude || null}
+                    onLocationSelect={(lat, lng, address) => {
+                      setMapLat(lat);
+                      setMapLng(lng);
+                      setMapAddress(address);
+                    }}
+                  />
+                  {!mapLat && !location?.latitude && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 backdrop-blur-[2px] pointer-events-none transition-opacity group-hover:opacity-0">
+                      <div className="bg-white px-4 py-2 rounded-xl shadow-lg font-bold text-sm text-[#FF5A1F] flex items-center gap-2">
+                        <BiMapPin size={18} />
+                        Click on the map to set location
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex flex-col pt-0.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5">
-                    Current Auto Location
+
+                <div className="mt-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 block">
+                    Selected Address
                   </span>
-                  <span className="text-sm font-semibold text-slate-700 leading-snug">
-                    {loadingLocation
-                      ? "Fetching your location..."
-                      : location?.formattedAddress || "Location not available"}
-                  </span>
+                  <div
+                    className={`flex items-start gap-3 rounded-2xl border p-4 text-sm font-medium transition-colors ${
+                      mapAddress || location?.formattedAddress
+                        ? "border-[#FF5A1F]/30 bg-[#FF5A1F]/5 text-slate-700"
+                        : "border-slate-200 bg-slate-50 text-slate-400 border-dashed"
+                    }`}
+                  >
+                    <BiMapPin
+                      className={`w-5 h-5 mt-0.5 shrink-0 ${
+                        mapAddress || location?.formattedAddress
+                          ? "text-[#FF5A1F]"
+                          : "text-slate-400"
+                      }`}
+                    />
+                    <span className="leading-relaxed">
+                      {loadingLocation
+                        ? "Fetching location..."
+                        : mapAddress ||
+                          location?.formattedAddress ||
+                          "No location selected"}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 

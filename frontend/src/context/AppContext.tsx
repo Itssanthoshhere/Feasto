@@ -117,7 +117,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
           setCity(city);
           setLoadingLocation(false);
-        } catch (error) {
+        } catch {
           setLocation({
             latitude,
             longitude,
@@ -146,6 +146,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         location,
         loadingLocation,
         city,
+        setLocation,
+        setCity,
         cart,
         fetchCart,
         quantity,
