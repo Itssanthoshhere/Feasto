@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useAppData } from "../context/AppContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CgShoppingCart } from "react-icons/cg";
-import { BiMapPin, BiSearch, BiX, BiCheck } from "react-icons/bi";
+import { BiMapPin, BiSearch, BiX, BiCheck, BiLoader } from "react-icons/bi";
 import { MapSelector } from "./MapSelector";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const currLocation = useLocation();
@@ -18,6 +20,10 @@ const Navbar = () => {
     lng: number;
     address: string;
   } | null>(null);
+
+  const [isManualLocation, setIsManualLocation] = useState(false);
+  const [manualAddress, setManualAddress] = useState("");
+  const [isVerifyingAddress, setIsVerifyingAddress] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,15 +61,44 @@ const Navbar = () => {
   };
 
   // Apply pending location and close
-  const confirmLocation = () => {
-    if (pendingLocation) {
-      handleLocationSelect(
-        pendingLocation.lat,
-        pendingLocation.lng,
-        pendingLocation.address,
-      );
+  const confirmLocation = async () => {
+    if (isManualLocation) {
+      if (!manualAddress.trim()) {
+        toast.error("Please enter your manual address");
+        return;
+      }
+      try {
+        setIsVerifyingAddress(true);
+        const res = await axios.get(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+            manualAddress,
+          )}&format=json&limit=1`,
+        );
+        if (res.data && res.data.length > 0) {
+          const lat = parseFloat(res.data[0].lat);
+          const lng = parseFloat(res.data[0].lon);
+          const formattedAddress = res.data[0].display_name || manualAddress;
+          handleLocationSelect(lat, lng, formattedAddress);
+        } else {
+          toast.error(
+            "Could not find coordinates for this address. Please try being more specific.",
+          );
+        }
+      } catch {
+        toast.error("Failed to verify manual address");
+      } finally {
+        setIsVerifyingAddress(false);
+      }
+    } else {
+      if (pendingLocation) {
+        handleLocationSelect(
+          pendingLocation.lat,
+          pendingLocation.lng,
+          pendingLocation.address,
+        );
+      }
+      setPendingLocation(null);
     }
-    setPendingLocation(null);
   };
 
   return (
@@ -225,14 +260,54 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Map */}
-            <div className="relative h-72 sm:h-80 w-full">
-              <MapSelector
-                latitude={null}
-                longitude={null}
-                onLocationSelect={handlePendingLocationSelect}
-              />
+            {/* Location Type Toggle */}
+            <div className="px-6 py-2">
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+                <button
+                  type="button"
+                  onClick={() => setIsManualLocation(false)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                    !isManualLocation
+                      ? "bg-white text-[#FF5A1F] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Map Picker
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsManualLocation(true)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                    isManualLocation
+                      ? "bg-white text-[#FF5A1F] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Manual Entry
+                </button>
+              </div>
             </div>
+
+            {/* Input Area */}
+            {isManualLocation ? (
+              <div className="px-6 py-4 h-72 sm:h-80 w-full flex items-start">
+                <textarea
+                  placeholder="Enter your full address (e.g. 123 Main St, City, State, Zip)"
+                  value={manualAddress}
+                  onChange={(e) => setManualAddress(e.target.value)}
+                  rows={4}
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FF5A1F] focus:ring-4 focus:ring-[#FF5A1F]/10 focus:bg-white"
+                />
+              </div>
+            ) : (
+              <div className="relative h-72 sm:h-80 w-full">
+                <MapSelector
+                  latitude={null}
+                  longitude={null}
+                  onLocationSelect={handlePendingLocationSelect}
+                />
+              </div>
+            )}
 
             {/* Live Address + Confirm */}
             <div className="px-6 py-4 border-t border-slate-100 space-y-3">
@@ -249,11 +324,15 @@ const Navbar = () => {
               </div>
               <button
                 onClick={confirmLocation}
-                disabled={!pendingLocation}
+                disabled={(!isManualLocation && !pendingLocation) || (isManualLocation && !manualAddress.trim()) || isVerifyingAddress}
                 className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#FF5A1F] py-3 text-sm font-bold text-white shadow-md shadow-[#FF5A1F]/20 transition-all hover:bg-[#e8521c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#FF5A1F]"
               >
-                <BiCheck className="w-5 h-5" />
-                Confirm Location
+                {isVerifyingAddress ? (
+                  <BiLoader className="w-5 h-5 animate-spin" />
+                ) : (
+                  <BiCheck className="w-5 h-5" />
+                )}
+                {isVerifyingAddress ? "Verifying..." : "Confirm Location"}
               </button>
             </div>
           </div>
