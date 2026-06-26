@@ -10,6 +10,8 @@ export const authService =
   import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost:8000";
 export const restaurantService =
   import.meta.env.VITE_RESTAURANT_SERVICE_URL || "http://localhost:8002";
+export const utilsService =
+  import.meta.env.VITE_UTILS_SERVICE_URL || "http://localhost:8003";
 
 const clientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||

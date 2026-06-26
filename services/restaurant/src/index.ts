@@ -8,8 +8,13 @@ import itemRoutes from "./routes/menuitem.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import addressRoutes from "./routes/address.routes.js";
 import orderRoutes from "./routes/order.routes.js";
+import { connectRabbitMQ } from "./config/rabbitmq.js";
+import { startPaymentConsumer } from "./config/payment.consumer.js";
 
 dotenv.config();
+
+await connectRabbitMQ();
+startPaymentConsumer();
 
 const app = express();
 

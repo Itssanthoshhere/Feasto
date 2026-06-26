@@ -6,7 +6,13 @@ import axios from "axios";
 import { restaurantService } from "../main";
 import toast from "react-hot-toast";
 import { VscLoading } from "react-icons/vsc";
-import { BiArrowBack, BiMinus, BiPlus, BiMapPin } from "react-icons/bi";
+import {
+  BiArrowBack,
+  BiMinus,
+  BiPlus,
+  BiMapPin,
+  BiCheck,
+} from "react-icons/bi";
 import { TbTrash, TbShoppingCart } from "react-icons/tb";
 
 const Cart = () => {
@@ -133,6 +139,39 @@ const Cart = () => {
           <BiArrowBack className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
           Back
         </button>
+
+        {/* Checkout Steps Indicator */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          {["Cart", "Checkout", "Payment"].map((step, i) => (
+            <div key={step} className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all ${
+                    i <= 0
+                      ? "bg-[#FF5A1F] text-white"
+                      : "bg-slate-200 text-slate-500"
+                  }`}
+                >
+                  {i < 0 ? <BiCheck size={16} /> : i + 1}
+                </div>
+                <span
+                  className={`text-sm font-semibold hidden sm:inline ${
+                    i <= 0 ? "text-slate-800" : "text-slate-400"
+                  }`}
+                >
+                  {step}
+                </span>
+              </div>
+              {i < 2 && (
+                <div
+                  className={`w-10 sm:w-16 h-0.5 rounded-full ${
+                    i < 0 ? "bg-[#FF5A1F]" : "bg-slate-200"
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Cart Items */}
@@ -278,7 +317,7 @@ const Cart = () => {
 
                 {subTotal < 250 && (
                   <div className="rounded-xl bg-[#FF5A1F]/5 px-3 py-2 text-xs font-medium text-[#FF5A1F]">
-                    Add ₹{250 - subTotal} more for free delivery 🚀
+                    Add items worth ₹{250 - subTotal} to get free delivery 🚀
                   </div>
                 )}
 
