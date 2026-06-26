@@ -142,35 +142,38 @@ const Cart = () => {
 
         {/* Checkout Steps Indicator */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          {["Cart", "Checkout", "Payment"].map((step, i) => (
-            <div key={step} className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all ${
-                    i <= 0
-                      ? "bg-[#FF5A1F] text-white"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
-                >
-                  {i < 0 ? <BiCheck size={16} /> : i + 1}
+          {(() => {
+            const currentStep = 0;
+            return ["Cart", "Checkout", "Payment"].map((step, i) => (
+              <div key={step} className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all ${
+                      i <= currentStep
+                        ? "bg-[#FF5A1F] text-white"
+                        : "bg-slate-200 text-slate-500"
+                    }`}
+                  >
+                    {i < currentStep ? <BiCheck size={16} /> : i + 1}
+                  </div>
+                  <span
+                    className={`text-sm font-semibold hidden sm:inline ${
+                      i <= currentStep ? "text-slate-800" : "text-slate-400"
+                    }`}
+                  >
+                    {step}
+                  </span>
                 </div>
-                <span
-                  className={`text-sm font-semibold hidden sm:inline ${
-                    i <= 0 ? "text-slate-800" : "text-slate-400"
-                  }`}
-                >
-                  {step}
-                </span>
+                {i < 2 && (
+                  <div
+                    className={`w-10 sm:w-16 h-0.5 rounded-full ${
+                      i < currentStep ? "bg-[#FF5A1F]" : "bg-slate-200"
+                    }`}
+                  />
+                )}
               </div>
-              {i < 2 && (
-                <div
-                  className={`w-10 sm:w-16 h-0.5 rounded-full ${
-                    i < 0 ? "bg-[#FF5A1F]" : "bg-slate-200"
-                  }`}
-                />
-              )}
-            </div>
-          ))}
+            ));
+          })()}
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -30,6 +30,7 @@ const Checkout = () => {
     null,
   );
   const [loadingAddress, setLoadingAddress] = useState(true);
+  const [addressError, setAddressError] = useState(false);
   const [loadingRazorpay, setLoadingRazorpay] = useState(false);
   const [loadingStripe, setLoadingStripe] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
@@ -44,6 +45,7 @@ const Checkout = () => {
       }
 
       try {
+        setAddressError(false);
         const { data } = await axios.get(
           `${restaurantService}/api/address/all`,
           {
@@ -56,6 +58,7 @@ const Checkout = () => {
         setAddresses(data || []);
       } catch (error) {
         console.log(error);
+        setAddressError(true);
       } finally {
         setLoadingAddress(false);
       }
@@ -312,6 +315,26 @@ const Checkout = () => {
                     size={24}
                     className="animate-spin text-slate-300"
                   />
+                </div>
+              ) : addressError ? (
+                <div className="py-8 text-center rounded-2xl bg-slate-50">
+                  <div className="flex justify-center mb-2">
+                    <BiMap className="w-10 h-10 text-red-300" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-500">
+                    Failed to load addresses
+                  </p>
+                  <button
+                    onClick={() => {
+                      setLoadingAddress(true);
+                      // Trigger re-fetch by toggling a dummy state or just calling fetchCart/useEffect implicitly
+                      // For simplicity, we just reload the page or navigate to trigger the effect
+                      window.location.reload();
+                    }}
+                    className="mt-4 px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold rounded-xl transition-colors"
+                  >
+                    Retry
+                  </button>
                 </div>
               ) : addresses.length === 0 ? (
                 <div className="py-8 text-center rounded-2xl bg-slate-50">

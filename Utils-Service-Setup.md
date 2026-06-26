@@ -147,6 +147,10 @@ RAZORPAY_KEY_ID=
 
 RAZORPAY_KEY_SECRET=
 
+# Stripe
+
+STRIPE_SECRET_KEY=
+
 # Internal Service Communication
 
 INTERNAL_SERVICE_KEY=

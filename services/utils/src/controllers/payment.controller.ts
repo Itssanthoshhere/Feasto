@@ -48,6 +48,20 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     });
   }
 
+  // Binding Check
+  try {
+    const rzpOrder = await razorpay.orders.fetch(razorpay_order_id);
+    if (rzpOrder.receipt !== orderId) {
+      return res.status(400).json({
+        message: "Order ID mismatch",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch Razorpay order",
+    });
+  }
+
   // Idempotency Check
   try {
     const { data: order } = await axios.get(

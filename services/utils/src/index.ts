@@ -9,8 +9,6 @@ import { connectRabbitMQ } from "./config/rabbitmq.js";
 
 dotenv.config();
 
-connectRabbitMQ();
-
 const app = express();
 
 app.use(helmet());
@@ -52,6 +50,16 @@ app.use("/api/payment", paymentRoutes);
 
 const PORT = process.env.PORT || 8003;
 
-app.listen(PORT, () => {
-  console.log(`Utils service is running on port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await connectRabbitMQ();
+    app.listen(PORT, () => {
+      console.log(`Utils service is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to connect to RabbitMQ, shutting down:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
