@@ -135,7 +135,7 @@ export const updateStatusRestaurant = TryCatch(
         ownerId: req.user._id,
       },
       { isOpen: status },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!restaurant) {
@@ -175,7 +175,7 @@ export const updateRestaurant = TryCatch(
     const restaurant = await Restaurant.findOneAndUpdate(
       { ownerId: req.user._id },
       updateData,
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!restaurant) {

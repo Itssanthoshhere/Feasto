@@ -33,7 +33,7 @@ export const startPaymentConsumer = async () => {
             expiresAt: 1,
           },
         },
-        { new: true },
+        { returnDocument: 'after' },
       );
 
       if (!order) {
