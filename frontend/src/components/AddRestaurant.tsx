@@ -5,6 +5,7 @@ import axios from "axios";
 import { restaurantService } from "../main";
 import { BiMapPin, BiUpload, BiStore, BiImageAdd } from "react-icons/bi";
 import { MapSelector } from "./MapSelector";
+import { geocodeAddress } from "../utils/geocode";
 
 interface props {
   fetchMyRestaurant: () => Promise<void>;
@@ -41,15 +42,11 @@ const AddRestaurant = ({ fetchMyRestaurant }: props) => {
       }
       try {
         setSubmitting(true);
-        const res = await axios.get(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            manualAddress,
-          )}&format=json&limit=1`,
-        );
-        if (res.data && res.data.length > 0) {
-          finalLat = parseFloat(res.data[0].lat);
-          finalLng = parseFloat(res.data[0].lon);
-          finalAddress = res.data[0].display_name || manualAddress;
+        const geoResult = await geocodeAddress(manualAddress);
+        if (geoResult) {
+          finalLat = geoResult.latitude;
+          finalLng = geoResult.longitude;
+          finalAddress = geoResult.formattedAddress;
         } else {
           toast.error(
             "Could not find coordinates for this address. Please try being more specific.",

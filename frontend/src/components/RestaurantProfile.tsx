@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { BiEdit, BiMapPin, BiSave } from "react-icons/bi";
 import { useAppData } from "../context/AppContext";
 import { MapSelector } from "./MapSelector";
+import { geocodeAddress } from "../utils/geocode";
 
 interface props {
   restaurant: IRestaurant;
@@ -75,15 +76,11 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
           return;
         }
         try {
-          const res = await axios.get(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-              manualAddress,
-            )}&format=json&limit=1`,
-          );
-          if (res.data && res.data.length > 0) {
-            lat = parseFloat(res.data[0].lat);
-            lng = parseFloat(res.data[0].lon);
-            formattedAddress = res.data[0].display_name || manualAddress;
+          const geoResult = await geocodeAddress(manualAddress);
+          if (geoResult) {
+            lat = geoResult.latitude;
+            lng = geoResult.longitude;
+            formattedAddress = geoResult.formattedAddress;
           } else {
             toast.error(
               "Could not find coordinates for this address. Please try being more specific.",

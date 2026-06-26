@@ -25,8 +25,27 @@ export const addAddress = TryCatch(async (req: AuthenticatedRequest, res) => {
     });
   }
 
+  if (mobile.toString().length !== 10) {
+    return res.status(400).json({
+      message: "Please enter a valid 10-digit mobile number",
+    });
+  }
+
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return res.status(400).json({
+      message: "Invalid coordinates",
+    });
+  }
+
+  const addressCount = await Address.countDocuments({ userId: user._id });
+  if (addressCount >= 10) {
+    return res.status(400).json({
+      message: "You can only save up to 10 addresses",
+    });
+  }
+
   const newAddress = await Address.create({
-    userId: user._id.toString(),
+    userId: user._id,
     mobile,
     formattedAddress,
     location: {
@@ -61,7 +80,7 @@ export const deleteAddress = TryCatch(
 
     const address = await Address.findOne({
       _id: id,
-      userId: user._id.toString(),
+      userId: user._id,
     });
 
     if (!address) {
@@ -89,7 +108,7 @@ export const getMyAddresses = TryCatch(
     }
 
     const addresses = await Address.find({
-      userId: user._id.toString(),
+      userId: user._id,
     }).sort({ createdAt: -1 });
 
     res.json(addresses);

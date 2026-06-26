@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAddress extends Document {
-  userId: string;
+  userId: mongoose.Types.ObjectId;
   mobile: number;
 
   formattedAddress: string;
@@ -18,8 +18,10 @@ export interface IAddress extends Document {
 const schema = new Schema<IAddress>(
   {
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
+      index: true,
     },
     mobile: {
       type: Number,
