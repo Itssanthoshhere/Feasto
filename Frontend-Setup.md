@@ -124,10 +124,65 @@ import { FcGoogle } from "react-icons/fc";
 
 ---
 
+### Leaflet
+
+```bash
+npm i leaflet
+```
+
+Used for:
+
+- Interactive Maps
+- Live Order Tracking
+- Delivery Partner Location
+- Restaurant Location Display
+- Customer Address Selection
+- Route Visualization
+
+---
+
+### React Leaflet
+
+```bash
+npm i react-leaflet
+```
+
+Used for:
+
+- React components for Leaflet
+- Interactive map rendering
+- Markers and popups
+- Polylines and polygons
+- Live location updates
+- Delivery tracking UI
+
+---
+
+### Leaflet TypeScript Definitions
+
+```bash
+npm i -D @types/leaflet
+```
+
+Used for:
+
+- TypeScript support for Leaflet
+- Improved IntelliSense
+- Type-safe map development
+- Better developer experience
+
+---
+
 ## Install All Frontend Dependencies Together
 
 ```bash
-npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons
+npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons leaflet react-leaflet
+```
+
+Install TypeScript definitions:
+
+```bash
+npm i -D @types/leaflet
 ```
 
 ---
@@ -229,6 +284,8 @@ npm run preview
 - React Hot Toast
 - Google OAuth
 - React Icons
+- Leaflet
+- React Leaflet
 
 ---
 
@@ -246,4 +303,4 @@ VITE v8.x.x ready
 ➜ Local: http://localhost:5173
 ```
 
-This setup serves as the frontend foundation for Feasto and will support authentication, Google Sign-In, role-based dashboards, restaurant management, food ordering, delivery tracking, and payment workflows.
+This setup serves as the frontend foundation for Feasto and supports authentication, Google Sign-In, role-based dashboards, restaurant management, customer browsing, shopping cart, interactive maps, restaurant location display, live delivery tracking, rider navigation, route visualization, and payment workflows.

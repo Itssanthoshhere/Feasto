@@ -40,9 +40,9 @@ export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
     return res.status(400).json({ message: "This item is currently unavailable." });
   }
 
-  if (!restaurant.isOpen || !restaurant.isVerified) {
-    return res.status(400).json({ message: "Restaurant is closed or not verified." });
-  }
+  // if (!restaurant.isOpen || !restaurant.isVerified) {
+  //   return res.status(400).json({ message: "Restaurant is closed or not verified." });
+  // }
 
   const cartFromDifferentRestaurant = await Cart.findOne({
     userId,

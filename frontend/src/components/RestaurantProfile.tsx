@@ -5,6 +5,8 @@ import { restaurantService } from "../main";
 import toast from "react-hot-toast";
 import { BiEdit, BiMapPin, BiSave } from "react-icons/bi";
 import { useAppData } from "../context/AppContext";
+import { MapSelector } from "./MapSelector";
+import { geocodeAddress } from "../utils/geocode";
 
 interface props {
   restaurant: IRestaurant;
@@ -16,12 +18,22 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
   const [editMode, setEditMode] = useState(false);
   const [name, setName] = useState(restaurant.name);
   const [description, setDescription] = useState(restaurant.description);
-  const [address, setAddress] = useState(restaurant.autoLocation?.formattedAddress || "");
-  const [useGps, setUseGps] = useState(false);
+  const [address, setAddress] = useState(
+    restaurant.autoLocation?.formattedAddress || "",
+  );
+  const [isManualLocation, setIsManualLocation] = useState(false);
+  const [manualAddress, setManualAddress] = useState("");
+  const [mapLat, setMapLat] = useState<number | null>(
+    restaurant.autoLocation?.coordinates[1] ?? null,
+  );
+  const [mapLng, setMapLng] = useState<number | null>(
+    restaurant.autoLocation?.coordinates[0] ?? null,
+  );
+  const [mapAddress, setMapAddress] = useState("");
   const [isOpen, setIsOpen] = useState(restaurant.isOpen);
   const [loading, setLoading] = useState(false);
 
-  const { setIsAuth, setUser, location, loadingLocation } = useAppData();
+  const { setIsAuth, setUser } = useAppData();
 
   const toggleOpenStatus = async () => {
     try {
@@ -37,47 +49,47 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
 
       toast.success(data.message);
       setIsOpen(data.restaurant.isOpen);
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error?.response?.data?.message || "Failed to update status",
+        );
+      } else {
+        toast.error("Failed to update status");
+      }
     }
-  };
-
-  const handleUseGps = () => {
-    if (!location) {
-      toast.error("Current location is not available");
-      return;
-    }
-    setUseGps(true);
-    setAddress(location.formattedAddress || "Current Location");
-    toast.success("Using your current location");
   };
 
   const saveChanges = async () => {
     try {
       setLoading(true);
-      let lat = restaurant.autoLocation?.coordinates[1];
-      let lng = restaurant.autoLocation?.coordinates[0];
-      let formattedAddress = restaurant.autoLocation?.formattedAddress;
+      let lat = mapAddress ? mapLat : restaurant.autoLocation?.coordinates[1];
+      let lng = mapAddress ? mapLng : restaurant.autoLocation?.coordinates[0];
+      let formattedAddress =
+        mapAddress || restaurant.autoLocation?.formattedAddress;
 
-      if (useGps && location) {
-        lat = location.latitude;
-        lng = location.longitude;
-        formattedAddress = location.formattedAddress;
-      } else if (address !== formattedAddress && address.trim() !== "") {
-        const res = await axios.get(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            address,
-          )}&format=json&limit=1`,
-        );
-        if (res.data && res.data.length > 0) {
-          lat = parseFloat(res.data[0].lat);
-          lng = parseFloat(res.data[0].lon);
-          formattedAddress = res.data[0].display_name || address;
-        } else {
-          toast.error(
-            "Could not find coordinates for this address. Please try being more specific.",
-          );
+      if (isManualLocation) {
+        if (!manualAddress.trim()) {
+          toast.error("Please enter your manual address");
+          setLoading(false);
+          return;
+        }
+        try {
+          const geoResult = await geocodeAddress(manualAddress);
+          if (geoResult) {
+            lat = geoResult.latitude;
+            lng = geoResult.longitude;
+            formattedAddress = geoResult.formattedAddress;
+          } else {
+            toast.error(
+              "Could not find coordinates for this address. Please try being more specific.",
+            );
+            setLoading(false);
+            return;
+          }
+        } catch {
+          toast.error("Failed to verify manual address");
           setLoading(false);
           return;
         }
@@ -96,8 +108,10 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
       toast.success(data.message);
       onUpdate(data.restaurant);
       setAddress(data.restaurant.autoLocation?.formattedAddress || "");
+      setMapLat(data.restaurant.autoLocation?.coordinates[1] ?? null);
+      setMapLng(data.restaurant.autoLocation?.coordinates[0] ?? null);
+      setMapAddress("");
       setEditMode(false);
-      setUseGps(false);
     } catch (error) {
       console.log(error);
       toast.error("Failed to update");
@@ -165,28 +179,13 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
               <div className="flex items-center gap-1.5 w-full sm:w-auto">
                 <BiMapPin className="h-4 w-4 shrink-0 text-[#FF5A1F]" />
                 {editMode ? (
-                  <div className="flex w-full items-center gap-2">
-                    <input
-                      value={address}
-                      onChange={(e) => {
-                        setAddress(e.target.value);
-                        setUseGps(false);
-                      }}
-                      className="w-full flex-1 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-md px-2 py-1 outline-none focus:border-[#FF5A1F] transition-colors"
-                      placeholder="Enter full address"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleUseGps}
-                      disabled={loadingLocation}
-                      className="shrink-0 text-xs font-bold bg-slate-100 text-[#FF5A1F] hover:bg-slate-200 px-2 py-1 rounded-md transition-colors whitespace-nowrap disabled:opacity-50"
-                    >
-                      {loadingLocation ? "Locating..." : "Use GPS"}
-                    </button>
-                  </div>
+                  <span className="line-clamp-2 sm:line-clamp-1">
+                    {mapAddress || address || "Select on map below"}
+                  </span>
                 ) : (
                   <span className="line-clamp-2 sm:line-clamp-1">
-                    {restaurant.autoLocation?.formattedAddress || "Location unavailable"}
+                    {restaurant.autoLocation?.formattedAddress ||
+                      "Location unavailable"}
                   </span>
                 )}
               </div>
@@ -200,7 +199,11 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
                   setName(restaurant.name);
                   setDescription(restaurant.description || "");
                   setAddress(restaurant.autoLocation?.formattedAddress || "");
-                  setUseGps(false);
+                  setMapAddress("");
+                  setMapLat(restaurant.autoLocation?.coordinates[1] ?? null);
+                  setMapLng(restaurant.autoLocation?.coordinates[0] ?? null);
+                  setIsManualLocation(false);
+                  setManualAddress("");
                 }
                 setEditMode(!editMode);
               }}
@@ -225,6 +228,64 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
             </p>
           )}
         </div>
+
+        {/* Map Selector / Manual Entry in edit mode */}
+        {editMode && (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between ml-1">
+              <label className="block text-sm font-bold text-slate-700">
+                Location Details
+              </label>
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setIsManualLocation(false)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                    !isManualLocation
+                      ? "bg-white text-[#FF5A1F] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Map Picker
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsManualLocation(true)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                    isManualLocation
+                      ? "bg-white text-[#FF5A1F] shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Manual Entry
+                </button>
+              </div>
+            </div>
+
+            {isManualLocation ? (
+              <textarea
+                placeholder="Enter your full business address (e.g. 123 Main St, City, State, Zip)"
+                value={manualAddress}
+                onChange={(e) => setManualAddress(e.target.value)}
+                rows={2}
+                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FF5A1F] focus:ring-4 focus:ring-[#FF5A1F]/10"
+              />
+            ) : (
+              <div className="relative h-52 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                <MapSelector
+                  latitude={mapLat}
+                  longitude={mapLng}
+                  onLocationSelect={(lat, lng, addr) => {
+                    setMapLat(lat);
+                    setMapLng(lng);
+                    setMapAddress(addr);
+                    setAddress(addr);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mt-auto pt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-50">
           <div className="flex items-center gap-2">

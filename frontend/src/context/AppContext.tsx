@@ -21,9 +21,19 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [location, setLocation] = useState<LocationData | null>(null);
+  const [location, setLocation] = useState<LocationData | null>(() => {
+    try {
+      const saved = localStorage.getItem("userLocation");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loadingLocation, setLoadingLocation] = useState(false);
-  const [city, setCity] = useState("Fetching Location...");
+  const [city, setCity] = useState(() => {
+    const saved = localStorage.getItem("userCity");
+    return saved ? saved : "Fetching Location...";
+  });
 
   async function fetchUser() {
     try {
@@ -77,6 +87,24 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   }, [user]);
 
   useEffect(() => {
+    if (location)
+      localStorage.setItem("userLocation", JSON.stringify(location));
+  }, [location]);
+
+  useEffect(() => {
+    if (
+      city &&
+      city !== "Fetching Location..." &&
+      city !== "Failed to load" &&
+      city !== "Location Permission Denied"
+    ) {
+      localStorage.setItem("userCity", city);
+    }
+  }, [city]);
+
+  useEffect(() => {
+    if (location && city && city !== "Fetching Location...") return;
+
     if (!navigator.geolocation)
       return alert("Please Allow Location to continue");
 
@@ -117,7 +145,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
           setCity(city);
           setLoadingLocation(false);
-        } catch (error) {
+        } catch {
           setLocation({
             latitude,
             longitude,
@@ -146,6 +174,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         location,
         loadingLocation,
         city,
+        setLocation,
+        setCity,
         cart,
         fetchCart,
         quantity,
