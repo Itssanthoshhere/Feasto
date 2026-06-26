@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppData } from "../context/AppContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CgShoppingCart } from "react-icons/cg";
-import { BiMapPin, BiSearch, BiX } from "react-icons/bi";
+import { BiMapPin, BiSearch, BiX, BiCheck } from "react-icons/bi";
 import { MapSelector } from "./MapSelector";
 
 const Navbar = () => {
@@ -13,6 +13,11 @@ const Navbar = () => {
   const { isAuth, city, quantity, setLocation, setCity } = useAppData();
   const [searchQuery, setSearchQuery] = useState("");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<{
+    lat: number;
+    lng: number;
+    address: string;
+  } | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +43,27 @@ const Navbar = () => {
     const cityName = formattedAddress.split(",")[0]?.trim() || "Your Location";
     setCity(cityName);
     setIsLocationModalOpen(false);
+  };
+
+  // Store pending location from map interactions without closing modal
+  const handlePendingLocationSelect = (
+    lat: number,
+    lng: number,
+    formattedAddress: string,
+  ) => {
+    setPendingLocation({ lat, lng, address: formattedAddress });
+  };
+
+  // Apply pending location and close
+  const confirmLocation = () => {
+    if (pendingLocation) {
+      handleLocationSelect(
+        pendingLocation.lat,
+        pendingLocation.lng,
+        pendingLocation.address,
+      );
+    }
+    setPendingLocation(null);
   };
 
   return (
@@ -169,7 +195,10 @@ const Navbar = () => {
       {isLocationModalOpen && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in"
-          onClick={() => setIsLocationModalOpen(false)}
+          onClick={() => {
+            setIsLocationModalOpen(false);
+            setPendingLocation(null);
+          }}
         >
           <div
             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up"
@@ -182,11 +211,14 @@ const Navbar = () => {
                   Set Delivery Location
                 </h3>
                 <p className="text-xs font-medium text-slate-500 mt-0.5">
-                  Click on the map or use "Locate Me" to update
+                  Drag the map or click to place the pin
                 </p>
               </div>
               <button
-                onClick={() => setIsLocationModalOpen(false)}
+                onClick={() => {
+                  setIsLocationModalOpen(false);
+                  setPendingLocation(null);
+                }}
                 className="flex items-center justify-center h-9 w-9 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               >
                 <BiX className="w-6 h-6" />
@@ -198,23 +230,31 @@ const Navbar = () => {
               <MapSelector
                 latitude={null}
                 longitude={null}
-                onLocationSelect={handleLocationSelect}
+                onLocationSelect={handlePendingLocationSelect}
               />
             </div>
 
-            {/* Current Location Display */}
-            <div className="px-6 py-4 border-t border-slate-100">
+            {/* Live Address + Confirm */}
+            <div className="px-6 py-4 border-t border-slate-100 space-y-3">
               <div className="flex items-center gap-3 rounded-2xl bg-[#FF5A1F]/5 border border-[#FF5A1F]/20 p-3">
                 <BiMapPin className="w-5 h-5 text-[#FF5A1F] shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Current Location
+                    {pendingLocation ? "Selected Location" : "Current Location"}
                   </p>
                   <p className="text-sm font-semibold text-slate-700 truncate">
-                    {city || "Not set"}
+                    {pendingLocation?.address || city || "Not set"}
                   </p>
                 </div>
               </div>
+              <button
+                onClick={confirmLocation}
+                disabled={!pendingLocation}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#FF5A1F] py-3 text-sm font-bold text-white shadow-md shadow-[#FF5A1F]/20 transition-all hover:bg-[#e8521c] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#FF5A1F]"
+              >
+                <BiCheck className="w-5 h-5" />
+                Confirm Location
+              </button>
             </div>
           </div>
         </div>

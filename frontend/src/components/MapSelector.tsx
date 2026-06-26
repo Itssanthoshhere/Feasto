@@ -1,12 +1,6 @@
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  useMapEvents,
-  useMap,
-} from "react-leaflet";
+import { MapContainer, TileLayer, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
-import { LuLocateFixed } from "react-icons/lu";
+import { LuLocateFixed, LuMapPin } from "react-icons/lu";
 import toast from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
 import { useAppData } from "./../context/AppContext";
@@ -38,7 +32,11 @@ const LocationPicker = ({
 }) => {
   useMapEvents({
     click(e) {
-      fetchAddress(e.latlng.lat, e.latlng.lng);
+      e.target.flyTo(e.latlng);
+    },
+    moveend(e) {
+      const center = e.target.getCenter();
+      fetchAddress(center.lat, center.lng);
     },
   });
   return null;
@@ -113,19 +111,25 @@ export const MapSelector = ({
   const defaultLng = longitude || location?.longitude || 77.209;
 
   return (
-    <MapContainer
-      center={[defaultLat, defaultLng]}
-      zoom={13}
-      className="h-full w-full z-0"
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
-      <LocationPicker fetchAddress={fetchAddress} />
-      <LocateMeButton fetchAddress={fetchAddress} />
-      {latitude && longitude && <Marker position={[latitude, longitude]} />}
-    </MapContainer>
+    <div className="relative h-full w-full">
+      <MapContainer
+        center={[defaultLat, defaultLng]}
+        zoom={16}
+        className="h-full w-full z-0"
+        style={{ height: "100%", width: "100%", cursor: "crosshair" }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        />
+        <LocationPicker fetchAddress={fetchAddress} />
+        <LocateMeButton fetchAddress={fetchAddress} />
+      </MapContainer>
+
+      {/* Fixed Center Pin */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-[400] pointer-events-none drop-shadow-lg">
+        <LuMapPin size={38} className="text-[#FF5A1F] fill-white" />
+      </div>
+    </div>
   );
 };
