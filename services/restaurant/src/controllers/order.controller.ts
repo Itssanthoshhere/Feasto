@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/isAuth.js";
 import TryCatch from "../middlewares/trycatch.js";
 import Address from "../models/Address.js";
@@ -46,11 +47,21 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
 
   if (!firstCartItem || !firstCartItem.restaurantId) {
     return res.status(400).json({
-      message: "Invailid Cart Data",
+      message: "Invalid Cart Data",
     });
   }
 
   const restaurantId = firstCartItem.restaurantId._id;
+
+  const isMixedCart = cartItems.some(
+    (item) => item.restaurantId._id.toString() !== restaurantId.toString()
+  );
+
+  if (isMixedCart) {
+    return res.status(400).json({
+      message: "Your cart contains items from multiple restaurants. Please clear your cart or order from a single restaurant.",
+    });
+  }
 
   const restaurant = await Restaurant.findById(restaurantId);
 
@@ -97,43 +108,65 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
 
   const [longitude, latitude] = address.location.coordinates;
 
-  const order = await Order.create({
-    userId: user._id,
-    restaurantId: restaurantId,
-    restaurantName: restaurant.name,
-    riderId: null,
-    distance,
-    riderAmount,
-    items: orderItems,
-    subtotal,
-    deliveryFee,
-    platformFee,
-    totalAmount,
-    addressId: address._id,
-    deliveryAddress: {
-      formattedAddress: address.formattedAddress,
-      mobile: address.mobile,
-      latitude,
-      longitude,
-    },
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    paymentMethod,
-    paymentStatus: "pending",
-    status: "placed",
-    expiresAt,
-  });
+  try {
+    const order = await Order.create(
+      [
+        {
+          userId: user._id,
+          restaurantId: restaurantId,
+          restaurantName: restaurant.name,
+          riderId: null,
+          distance,
+          riderAmount,
+          items: orderItems,
+          subtotal,
+          deliveryFee,
+          platformFee,
+          totalAmount,
+          addressId: address._id,
+          deliveryAddress: {
+            formattedAddress: address.formattedAddress,
+            mobile: address.mobile,
+            latitude,
+            longitude,
+          },
+          paymentMethod,
+          paymentStatus: "pending",
+          status: "placed",
+          expiresAt,
+        },
+      ],
+      { session }
+    );
 
-  await Cart.deleteMany({ userId: user._id });
+    await Cart.deleteMany({ userId: user._id }, { session });
 
-  res.json({
-    message: "Order created successfully",
-    orderId: order._id.toString(),
-    amount: totalAmount,
-  });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.json({
+      message: "Order created successfully",
+      orderId: order[0]?._id,
+      amount: totalAmount,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 });
 
 // Internal API
 export const fetchOrderForPayment = TryCatch(async (req, res) => {
+  if (!process.env.INTERNAL_SERVICE_KEY) {
+    return res.status(403).json({
+      message: "Forbidden",
+    });
+  }
+
   if (req.headers["x-internal-key"] !== process.env.INTERNAL_SERVICE_KEY) {
     return res.status(403).json({
       message: "Forbidden",

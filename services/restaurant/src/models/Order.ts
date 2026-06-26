@@ -88,19 +88,22 @@ const OrderSchema = new Schema<IOrder>(
       required: true,
     },
 
-    items: [
-      {
-        itemId: String,
-        name: String,
-        price: Number,
-        quantity: Number,
-      },
-    ],
+    items: {
+      type: [
+        {
+          itemId: String,
+          name: String,
+          price: Number,
+          quantity: Number,
+        },
+      ],
+      required: true,
+    },
 
-    subtotal: Number,
-    deliveryFee: Number,
-    platformFee: Number,
-    totalAmount: Number,
+    subtotal: { type: Number, required: true },
+    deliveryFee: { type: Number, required: true },
+    platformFee: { type: Number, required: true },
+    totalAmount: { type: Number, required: true },
 
     addressId: {
       type: Schema.Types.ObjectId,
@@ -109,10 +112,13 @@ const OrderSchema = new Schema<IOrder>(
     },
 
     deliveryAddress: {
-      formattedAddress: { type: String, required: true },
-      mobile: { type: Number, required: true },
-      latitude: Number,
-      longitude: Number,
+      type: {
+        formattedAddress: { type: String, required: true },
+        mobile: { type: Number, required: true },
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
+      },
+      required: true,
     },
 
     status: {
@@ -144,7 +150,10 @@ const OrderSchema = new Schema<IOrder>(
 
     expiresAt: {
       type: Date,
-      index: { expireAfterSeconds: 0 },
+      index: { 
+        expireAfterSeconds: 0,
+        partialFilterExpression: { paymentStatus: "pending" }
+      },
     },
   },
   {
