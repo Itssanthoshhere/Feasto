@@ -12,7 +12,7 @@ export const addAddress = TryCatch(async (req: AuthenticatedRequest, res) => {
     });
   }
 
-  const { mobile, formattedAddress, latitude, longitude } = req.body;
+  const { mobile, formattedAddress, latitude, longitude, label } = req.body;
 
   if (
     !mobile ||
@@ -48,6 +48,7 @@ export const addAddress = TryCatch(async (req: AuthenticatedRequest, res) => {
     userId: user._id,
     mobile,
     formattedAddress,
+    label: label || "Home",
     location: {
       type: "Point",
       coordinates: [Number(longitude), Number(latitude)],

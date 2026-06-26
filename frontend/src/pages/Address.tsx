@@ -12,6 +12,7 @@ interface Address {
   _id: string;
   formattedAddress: string;
   mobile: number;
+  label: "Home" | "Work" | "Other";
 }
 
 const AddAddressPage = () => {
@@ -29,6 +30,7 @@ const AddAddressPage = () => {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isManualLocation, setIsManualLocation] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
+  const [label, setLabel] = useState<"Home" | "Work" | "Other">("Home");
 
   const handleLocationSelect = (lat: number, lng: number, address: string) => {
     setLatitude(lat);
@@ -118,6 +120,7 @@ const AddAddressPage = () => {
           mobile,
           latitude: finalLat,
           longitude: finalLng,
+          label,
         },
         {
           headers: {
@@ -132,6 +135,7 @@ const AddAddressPage = () => {
       setLongitude(null);
       setIsManualLocation(false);
       setManualAddress("");
+      setLabel("Home");
       fetchAddresses();
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -288,6 +292,29 @@ const AddAddressPage = () => {
                   </div>
                 </div>
 
+                {/* Label Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">
+                    Save As
+                  </label>
+                  <div className="flex gap-2">
+                    {["Home", "Work", "Other"].map((l) => (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => setLabel(l as "Home" | "Work" | "Other")}
+                        className={`flex-1 rounded-xl py-2 text-sm font-bold border transition-all ${
+                          label === l
+                            ? "bg-[#FF5A1F]/10 border-[#FF5A1F]/30 text-[#FF5A1F]"
+                            : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                        }`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Save */}
                 <button
                   disabled={
@@ -353,6 +380,11 @@ const AddAddressPage = () => {
                       </div>
 
                       <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#FF5A1F] bg-[#FF5A1F]/10 px-2 py-0.5 rounded-md">
+                            {addr.label}
+                          </span>
+                        </div>
                         <p className="text-sm font-semibold text-slate-800 leading-relaxed mb-2">
                           {addr.formattedAddress}
                         </p>

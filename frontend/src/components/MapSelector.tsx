@@ -9,6 +9,7 @@ import L from "leaflet";
 import { LuLocateFixed } from "react-icons/lu";
 import toast from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
+import { useAppData } from "./../context/AppContext";
 
 // Fix leaflet icon
 // @ts-expect-error - _getIconUrl is not in the type definition but needs to be deleted
@@ -107,9 +108,13 @@ export const MapSelector = ({
     }
   };
 
+  const { location } = useAppData();
+  const defaultLat = latitude || location?.latitude || 28.6139;
+  const defaultLng = longitude || location?.longitude || 77.209;
+
   return (
     <MapContainer
-      center={[latitude || 28.6139, longitude || 77.209]}
+      center={[defaultLat, defaultLng]}
       zoom={13}
       className="h-full w-full z-0"
       style={{ height: "100%", width: "100%" }}
