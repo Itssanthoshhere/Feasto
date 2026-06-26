@@ -29,7 +29,7 @@ npx tsc --init
 ### Express & Core Packages
 
 ```bash
-npm i express dotenv mongoose datauri multer axios jsonwebtoken
+npm i express dotenv mongoose datauri multer axios jsonwebtoken amqplib
 ```
 
 **Packages Installed**
@@ -41,13 +41,14 @@ npm i express dotenv mongoose datauri multer axios jsonwebtoken
 - Multer — File upload middleware
 - Axios — HTTP client
 - JSON Web Token — Authentication & authorization
+- amqplib — RabbitMQ client for message queue communication
 
 ---
 
 ## Install Development Dependencies
 
 ```bash
-npm i -D @types/express @types/dotenv @types/mongoose @types/multer @types/axios concurrently typescript
+npm i -D @types/express @types/dotenv @types/mongoose @types/multer @types/axios @types/amqplib concurrently typescript
 ```
 
 ### JWT Types
@@ -171,6 +172,7 @@ npm start
 - Mongoose
 - JWT Authentication
 - Axios
+- amqplib (RabbitMQ)
 - Multer
 - DataURI
 - Dotenv

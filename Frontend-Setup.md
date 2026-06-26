@@ -124,6 +124,21 @@ import { FcGoogle } from "react-icons/fc";
 
 ---
 
+### Stripe JS
+
+```bash
+npm i @stripe/stripe-js
+```
+
+Used for:
+
+- Secure payment processing
+- International payment gateway
+- Loading Stripe.js asynchronously
+- Creating payment tokens and processing payments
+
+---
+
 ### Leaflet
 
 ```bash
@@ -176,7 +191,7 @@ Used for:
 ## Install All Frontend Dependencies Together
 
 ```bash
-npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons leaflet react-leaflet
+npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons leaflet react-leaflet @stripe/stripe-js
 ```
 
 Install TypeScript definitions:
@@ -286,6 +301,7 @@ npm run preview
 - React Icons
 - Leaflet
 - React Leaflet
+- Stripe JS
 
 ---
 

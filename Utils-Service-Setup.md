@@ -29,7 +29,7 @@ npx tsc --init
 ### Express & Core Packages
 
 ```bash
-npm i express dotenv cloudinary cors concurrently
+npm i express dotenv cloudinary cors razorpay amqplib axios stripe
 ```
 
 **Packages Installed**
@@ -38,15 +38,26 @@ npm i express dotenv cloudinary cors concurrently
 - Dotenv — Environment variable management
 - Cloudinary — Cloud-based image and media storage
 - CORS — Cross-Origin Resource Sharing
-- Concurrently — Run multiple commands simultaneously
+- Razorpay — Payment Gateway Integration
+- Stripe — Payment Gateway Integration (International)
+- amqplib — RabbitMQ client for message queue communication
+- Axios — HTTP client for inter-service communication
 
 ---
 
 ## Install Development Dependencies
 
 ```bash
-npm i -D @types/express @types/dotenv @types/cors typescript
+npm i -D @types/express @types/dotenv @types/cors @types/amqplib @types/axios typescript
 ```
+
+### Optional Razorpay Types
+
+```bash
+npm i -D @types/razorpay
+```
+
+> Note: Some Razorpay versions include built-in TypeScript support. If installation fails, this package can be skipped.
 
 ---
 
@@ -122,11 +133,27 @@ Create a `.env` file:
 ```env
 PORT=8003
 
+# Cloudinary
+
 CLOUD_NAME=
 
 CLOUD_API_KEY=
 
 CLOUD_SECRET_KEY=
+
+# Razorpay
+
+RAZORPAY_KEY_ID=
+
+RAZORPAY_KEY_SECRET=
+
+# Stripe
+
+STRIPE_SECRET_KEY=
+
+# Internal Service Communication
+
+INTERNAL_SERVICE_KEY=
 ```
 
 ---
@@ -161,6 +188,10 @@ npm start
 - TypeScript
 - Express.js
 - Cloudinary
+- Razorpay
+- Stripe
+- amqplib (RabbitMQ)
+- Axios
 - CORS
 - Dotenv
 - ts-node-dev
@@ -168,16 +199,38 @@ npm start
 
 ---
 
-## Planned Features
+## Architecture Responsibilities
 
-- Image Upload Service
-- Cloudinary Integration
-- Restaurant Image Storage
-- Food Item Image Storage
+### Media Services
+
+- Restaurant Image Uploads
+- Menu Item Image Uploads
 - User Avatar Uploads
-- Media Management APIs
-- Shared Utility Functions
-- Centralized File Handling
+- Cloudinary Asset Management
+- Centralized File Storage
+
+### Payment Services
+
+- Razorpay Order Creation
+- Stripe Checkout Sessions
+- Payment Verification
+- Payment Signature Validation
+- Webhook Processing
+- Refund Support
+- Payment Status Updates
+
+### Message Queue Services
+
+- RabbitMQ Connection Management
+- Event Publishing & Consuming
+- Inter-Service Async Communication
+
+### Shared Utilities
+
+- Internal Service Communication
+- Common Utility Functions
+- Shared Infrastructure Logic
+- Centralized Asset Handling
 
 ---
 
@@ -197,4 +250,22 @@ npm 11.x.x
 TypeScript 6.x.x
 ```
 
-This setup serves as the foundation for the Feasto Utils Service and will handle media uploads, Cloudinary integration, and shared utility operations across all Feasto microservices.
+---
+
+## Install Everything Together
+
+```bash
+npm i express dotenv cloudinary cors razorpay amqplib axios stripe
+
+npm i -D @types/express @types/dotenv @types/cors @types/amqplib @types/axios typescript ts-node-dev
+```
+
+Optional:
+
+```bash
+npm i -D @types/razorpay
+```
+
+---
+
+This setup serves as the foundation for the **Feasto Utils Service**, responsible for Cloudinary media uploads, Razorpay and Stripe payment processing, RabbitMQ message queue communication, shared infrastructure utilities, internal service communication, and reusable platform-wide functionality across all Feasto microservices.
