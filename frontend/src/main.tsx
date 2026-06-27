@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AppProvider } from "./context/AppContext.tsx";
 import "leaflet/dist/leaflet.css";
+import { SocketProvider } from "./context/SocketContext.tsx";
 
 export const authService =
   import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost:8000";
@@ -12,6 +13,8 @@ export const restaurantService =
   import.meta.env.VITE_RESTAURANT_SERVICE_URL || "http://localhost:8002";
 export const utilsService =
   import.meta.env.VITE_UTILS_SERVICE_URL || "http://localhost:8003";
+export const realtimeService =
+  import.meta.env.VITE_REALTIME_SERVICE_URL || "http://localhost:8004";
 
 const clientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
@@ -21,7 +24,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={clientId}>
       <AppProvider>
-        <App />
+        <SocketProvider>
+          <App />
+        </SocketProvider>
       </AppProvider>
     </GoogleOAuthProvider>
   </StrictMode>,
