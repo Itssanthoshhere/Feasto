@@ -5,6 +5,7 @@ import axios from "axios";
 import { restaurantService } from "../main";
 import RestaurantProfile from "../components/RestaurantProfile";
 import MenuItems from "../components/MenuItems";
+import ReviewList from "../components/ReviewList";
 import { BiArrowBack, BiStore } from "react-icons/bi";
 
 const RestaurantPage = () => {
@@ -182,6 +183,9 @@ const RestaurantPage = () => {
             onItemDeleted={() => {}}
           />
         </div>
+
+        {/* Reviews Section */}
+        <ReviewList restaurantId={restaurant._id} />
       </div>
     </div>
   );
