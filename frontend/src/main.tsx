@@ -15,6 +15,8 @@ export const utilsService =
   import.meta.env.VITE_UTILS_SERVICE_URL || "http://localhost:8003";
 export const realtimeService =
   import.meta.env.VITE_REALTIME_SERVICE_URL || "http://localhost:8004";
+export const riderService =
+  import.meta.env.VITE_RIDE_SERVICE_URL || "http://localhost:8005";
 
 const clientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||

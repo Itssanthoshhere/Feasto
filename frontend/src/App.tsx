@@ -17,14 +17,33 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import OrderSuccess from "./pages/OrderSuccess";
 import Orders from "./pages/Orders";
 import OrderPage from "./pages/OrderPage";
+import RiderDashboard from "./pages/RiderDashboard";
 
 const App = () => {
-  const { user } = useAppData();
+  const { user, loading } = useAppData();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="glass-card px-8 py-6">
+          <h1 className="text-2xl font-bold text-orange-600">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
 
   if (user && user.role === "seller") {
     return (
       <>
         <Restaurant />
+      </>
+    );
+  }
+
+  if (user && user.role === "rider") {
+    return (
+      <>
+        <RiderDashboard />
       </>
     );
   }
