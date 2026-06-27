@@ -156,6 +156,21 @@ Used for:
 
 ---
 
+### Socket.IO Client
+
+```bash
+npm i socket.io-client
+```
+
+Used for:
+
+- Real-time bidirectional communication
+- Listening to live order updates
+- Real-time delivery tracking
+- Instant notifications
+
+---
+
 ### React Leaflet
 
 ```bash
@@ -191,7 +206,7 @@ Used for:
 ## Install All Frontend Dependencies Together
 
 ```bash
-npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons leaflet react-leaflet @stripe/stripe-js
+npm i tailwindcss @tailwindcss/vite react-router-dom axios react-hot-toast @react-oauth/google react-icons leaflet react-leaflet @stripe/stripe-js socket.io-client
 ```
 
 Install TypeScript definitions:
@@ -302,6 +317,7 @@ npm run preview
 - Leaflet
 - React Leaflet
 - Stripe JS
+- Socket.IO Client
 
 ---
 
