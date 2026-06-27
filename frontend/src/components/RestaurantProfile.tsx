@@ -130,7 +130,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
         },
       },
     );
-    localStorage.setItem("token", "");
+    localStorage.removeItem("token");
     setIsAuth(false);
     setUser(null);
     toast.success("Logged out successfully");

@@ -8,9 +8,9 @@ const TryCatch = (handler: RequestHandler): RequestHandler => {
       console.error("Backend Error:", err?.response?.data || err);
       const message =
         err?.response?.data?.message || err.message || "Internal Server Error";
-      res.status(500).json({
+      const statusCode = err?.response?.status || 500;
+      res.status(statusCode).json({
         message,
-        details: err?.response?.data || err.stack,
       });
     }
   };

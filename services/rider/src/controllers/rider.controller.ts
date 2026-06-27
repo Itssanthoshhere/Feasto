@@ -36,13 +36,6 @@ export const addRiderProfile = TryCatch(
       });
     }
 
-    const { data: uploadResult } = await axios.post(
-      `${process.env.UTILS_SERVICE}/api/upload`,
-      {
-        buffer: fileBuffer.content,
-      },
-    );
-
     const {
       phoneNumber,
       aadhaarNumber,
@@ -73,24 +66,49 @@ export const addRiderProfile = TryCatch(
       });
     }
 
-    const riderProfile = await Rider.create({
-      userId: user._id,
-      picture: uploadResult.url,
-      phoneNumber,
-      aadhaarNumber,
-      drivingLicenseNumber,
-      location: {
-        type: "Point",
-        coordinates: [longitude, latitude],
-      },
-      isAvailble: false,
-      isVerified: false,
-    });
+    let uploadResult;
+    try {
+      const { data } = await axios.post(
+        `${process.env.UTILS_SERVICE}/api/upload`,
+        {
+          buffer: fileBuffer.content,
+        },
+        { timeout: 10000 },
+      );
+      uploadResult = data;
+    } catch (uploadError: any) {
+      return res.status(503).json({
+        message: "Image upload failed. Please try again.",
+      });
+    }
 
-    return res.status(201).json({
-      message: "Rider profile created successfully",
-      riderProfile,
-    });
+    try {
+      const riderProfile = await Rider.create({
+        userId: user._id,
+        picture: uploadResult.url,
+        phoneNumber,
+        aadhaarNumber,
+        drivingLicenseNumber,
+        location: {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        },
+        isAvailble: false,
+        isVerified: false,
+      });
+
+      return res.status(201).json({
+        message: "Rider profile created successfully",
+        riderProfile,
+      });
+    } catch (dbError) {
+      // Cleanup path: Ideally we would call an endpoint to delete the image from Cloudinary here.
+      // Since UTILS_SERVICE doesn't expose a delete endpoint, we log a warning for manual cleanup.
+      console.warn(
+        `Profile creation failed. Orphaned image at: ${uploadResult.url}`,
+      );
+      throw dbError; // let TryCatch handle it
+    }
   },
 );
 
@@ -134,9 +152,9 @@ export const toggleRiderAvailablity = TryCatch(
       });
     }
 
-    if (latitude === undefined || longitude === undefined) {
+    if (isAvailble && (latitude === undefined || longitude === undefined)) {
       return res.status(400).json({
-        message: "location is required",
+        message: "location is required when going online",
       });
     }
 
@@ -158,10 +176,13 @@ export const toggleRiderAvailablity = TryCatch(
 
     rider.isAvailble = isAvailble;
 
-    rider.location = {
-      type: "Point",
-      coordinates: [longitude, latitude],
-    };
+    if (isAvailble) {
+      rider.location = {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      };
+    }
+
     rider.lastActiveAt = new Date();
 
     await rider.save();

@@ -82,9 +82,16 @@ export const isSeller = async (
 ): Promise<void> => {
   const user = req.user;
 
-  if (user && user.role !== "seller") {
+  if (!user) {
     res.status(401).json({
-      message: "You are  not autherized seller",
+      message: "Please Login - Token missing or invalid",
+    });
+    return;
+  }
+
+  if (user.role !== "seller") {
+    res.status(403).json({
+      message: "You are not authorized seller",
     });
     return;
   }

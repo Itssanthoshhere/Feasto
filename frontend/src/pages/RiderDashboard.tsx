@@ -55,7 +55,7 @@ const RiderDashboard = () => {
     else setLoading(false);
   }, [user]);
 
-  const toggleAvailiblity = async () => {
+  const toggleAvailiblity = () => {
     if (!navigator.geolocation) {
       toast.error("Location Access Required");
       return;
@@ -63,14 +63,17 @@ const RiderDashboard = () => {
 
     setToggling(true); // the button gets disabled
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
+    const targetAvailability = !profile?.isAvailble;
+
+    const performToggle = async (latitude?: number, longitude?: number) => {
       try {
         await axios.patch(
           `${riderService}/api/rider/toggle`,
           {
-            isAvailble: !profile?.isAvailble,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
+            isAvailble: targetAvailability,
+            ...(latitude !== undefined && longitude !== undefined
+              ? { latitude, longitude }
+              : {}),
           },
           {
             headers: {
@@ -80,17 +83,37 @@ const RiderDashboard = () => {
         );
 
         toast.success(
-          profile?.isAvailble ? "You are offline" : "You are online",
+          targetAvailability ? "You are online" : "You are offline",
         );
 
         fetchProfile();
       } catch (error: any) {
-        toast.error(error.response.data.message);
+        toast.error(error.response?.data?.message || "Failed to toggle status");
       } finally {
         setToggling(false);
       }
-    });
+    };
+
+    if (targetAvailability) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          performToggle(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          toast.error("Location access denied. Please enable location.");
+          setToggling(false);
+        },
+      );
+    } else {
+      performToggle();
+    }
   };
+
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [aadhaarNumber, setaadhaarNumber] = useState("");
+  const [drivingLicenseNumber, setDrivingLicenseNumber] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   if (user?.role !== "rider") {
     return (
@@ -100,19 +123,13 @@ const RiderDashboard = () => {
     );
   }
 
-  //   if (loading) {
-  //     return (
-  //       <div className="flex min-h-[60vh] items-center justify-center text-gray-500">
-  //         Loading rider details...
-  //       </div>
-  //     );
-  //   }
-
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [aadhaarNumber, setaadhaarNumber] = useState("");
-  const [drivingLicenseNumber, setDrivingLicenseNumber] = useState("");
-  const [image, setImage] = useState<File | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-gray-500">
+        Loading rider details...
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     if (!navigator.geolocation) {
@@ -152,7 +169,8 @@ const RiderDashboard = () => {
         } catch (error: any) {
           console.error(
             "Upload error details:",
-            JSON.stringify(error?.response?.data || error, null, 2),
+            error?.response?.status || "Unknown",
+            error?.message || "Error",
           );
           toast.error(
             error?.response?.data?.message || "Failed to add profile",
@@ -169,7 +187,7 @@ const RiderDashboard = () => {
   };
 
   const logoutHandler = () => {
-    localStorage.setItem("token", "");
+    localStorage.removeItem("token");
     setIsAuth(false);
     setUser(null);
     toast.success("Logged out successfully");
@@ -190,14 +208,14 @@ const RiderDashboard = () => {
         <div className="mx-auto max-w-lg rounded-xl bg-white p-6 shadow-sm space-y-5">
           <h1 className="text-xl font-semibold">Add Your Profile</h1>
           <input
-            type="number"
+            type="tel"
             placeholder="Aadhar number"
             value={aadhaarNumber}
             onChange={(e) => setaadhaarNumber(e.target.value)}
             className="w-full rounded-lg border px-4 py-2 text-sm outline-none"
           />
           <input
-            type="number"
+            type="tel"
             placeholder="Contact Number"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}

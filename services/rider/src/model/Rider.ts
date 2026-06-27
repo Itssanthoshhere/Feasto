@@ -71,6 +71,18 @@ const schema = new Schema<IRider>(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        if (ret.aadhaarNumber) {
+          ret.aadhaarNumber = "XXXX-XXXX-" + ret.aadhaarNumber.slice(-4);
+        }
+        if (ret.drivingLicenseNumber) {
+          ret.drivingLicenseNumber =
+            "XXXXXX" + ret.drivingLicenseNumber.slice(-4);
+        }
+        return ret;
+      },
+    },
   },
 );
 
