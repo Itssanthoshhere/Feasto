@@ -7,6 +7,7 @@ import RestaurantProfile from "../components/RestaurantProfile";
 import { useAppData } from "../context/AppContext";
 import MenuItems from "../components/MenuItems";
 import AddMenuItem from "../components/AddMenuItem";
+import RestaurantOrders from "../components/RestaurantOrders";
 
 type SellerTab = "menu" | "add-item" | "sales";
 
@@ -95,6 +96,8 @@ const Restaurant = () => {
           onUpdate={setRestaurant}
           isSeller={true}
         />
+
+        <RestaurantOrders restaurantId={restaurant._id} />
 
         {/* Dashboard */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
