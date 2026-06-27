@@ -19,12 +19,15 @@ const ReviewList = ({ restaurantId }: Props) => {
 
   const fetchReviews = async () => {
     try {
+      setLoading(true);
+      setReviews([]);
       const { data } = await axios.get(
         `${restaurantService}/api/review/restaurant/${restaurantId}`,
       );
       setReviews(data.reviews || []);
     } catch (error) {
       console.log(error);
+      setReviews([]);
     } finally {
       setLoading(false);
     }

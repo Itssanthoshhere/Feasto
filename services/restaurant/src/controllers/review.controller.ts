@@ -30,14 +30,7 @@ export const createReview = async (
       return;
     }
 
-    // 2. Check if a review already exists for this order
-    const existingReview = await Review.findOne({ orderId, userId });
-    if (existingReview) {
-      res.status(400).json({ message: "You have already reviewed this order" });
-      return;
-    }
-
-    // 3. Create the review
+    // 2 Create the review (relies on unique index to prevent duplicates)
     const newReview = await Review.create({
       userId,
       userName: req.user?.name || "Unknown User",
@@ -48,27 +41,34 @@ export const createReview = async (
       comment,
     });
 
-    // 4. Update the restaurant's average rating and totalReviews
-    const restaurant = await Restaurant.findById(order.restaurantId);
-    if (restaurant) {
-      const currentTotalReviews = restaurant.totalReviews || 0;
-      const currentRating = restaurant.rating || 0;
-
-      const newTotalReviews = currentTotalReviews + 1;
-      const newRating =
-        (currentRating * currentTotalReviews + rating) / newTotalReviews;
-
-      restaurant.totalReviews = newTotalReviews;
-      restaurant.rating = newRating;
-      await restaurant.save();
-    }
+    // 3. Update the restaurant's average rating and totalReviews atomically
+    await Restaurant.updateOne(
+      { _id: order.restaurantId },
+      [
+        {
+          $set: {
+            rating: {
+              $divide: [
+                { $add: [{ $multiply: [{ $ifNull: ["$rating", 0] }, { $ifNull: ["$totalReviews", 0] }] }, rating] },
+                { $add: [{ $ifNull: ["$totalReviews", 0] }, 1] }
+              ]
+            },
+            totalReviews: { $add: [{ $ifNull: ["$totalReviews", 0] }, 1] }
+          }
+        }
+      ]
+    );
 
     res.status(201).json({
       message: "Review submitted successfully",
       review: newReview,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating review:", error);
+    if (error.code === 11000) {
+      res.status(400).json({ message: "You have already reviewed this order" });
+      return;
+    }
     res.status(500).json({ message: "Failed to submit review" });
   }
 };

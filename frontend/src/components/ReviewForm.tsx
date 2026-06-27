@@ -24,6 +24,8 @@ const ReviewForm = ({ orderId }: Props) => {
 
   const fetchReviewStatus = async () => {
     try {
+      setLoading(true);
+      setExistingReview(null);
       const { data } = await axios.get(
         `${restaurantService}/api/review/order/${orderId}`,
         {
@@ -125,7 +127,12 @@ const ReviewForm = ({ orderId }: Props) => {
               <button
                 type="button"
                 key={i}
-                className="transition-transform hover:scale-110 focus:outline-none"
+                aria-label={`Rate ${ratingValue} stars`}
+                className={`transition-transform hover:scale-110 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5A1F] ${
+                  ratingValue === rating
+                    ? "ring-2 ring-[#FF5A1F] scale-110"
+                    : ""
+                }`}
                 onClick={() => setRating(ratingValue)}
                 onMouseEnter={() => setHover(ratingValue)}
                 onMouseLeave={() => setHover(0)}

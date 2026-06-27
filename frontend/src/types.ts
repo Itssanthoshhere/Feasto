@@ -105,14 +105,14 @@ export interface IOrder {
   };
 
   status:
-    | "placed"
-    | "accepted"
-    | "preparing"
-    | "ready_for_rider"
-    | "rider_assigned"
-    | "picked_up"
-    | "delivered"
-    | "cancelled";
+  | "placed"
+  | "accepted"
+  | "preparing"
+  | "ready_for_rider"
+  | "rider_assigned"
+  | "picked_up"
+  | "delivered"
+  | "cancelled";
 
   paymentMethod: "razorpay" | "stripe";
   paymentStatus: "pending" | "paid" | "failed";
@@ -131,6 +131,6 @@ export interface IReview {
   restaurantId: string;
   orderId: string;
   rating: number;
-  comment: string;
+  comment?: string;
   createdAt: string;
 }
