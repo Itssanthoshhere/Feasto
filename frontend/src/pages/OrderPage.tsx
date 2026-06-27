@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { IOrder } from "../types";
 import axios from "axios";
 import { restaurantService } from "../main";
+import ReviewForm from "../components/ReviewForm";
 import {
   BiArrowBack,
   BiMap,
@@ -398,6 +399,11 @@ const OrderPage = () => {
               )}
             </div>
           </div>
+        )}
+
+        {/* ── Leave a Review (if delivered) ── */}
+        {order.status === "delivered" && (
+          <ReviewForm orderId={order._id} />
         )}
       </div>
     </div>

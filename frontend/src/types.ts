@@ -122,3 +122,15 @@ export interface IOrder {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IReview {
+  _id: string;
+  userId: string;
+  userName: string;
+  userImage: string;
+  restaurantId: string;
+  orderId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
