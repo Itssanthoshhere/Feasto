@@ -61,7 +61,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       socketRef.current = null;
       setSocket(null);
     };
-  }, [isAuth]);
+  }, [isAuth, localStorage.getItem("token")]);
 
   return (
     <SocketContext.Provider value={{ socket }}>

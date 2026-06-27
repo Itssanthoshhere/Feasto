@@ -7,6 +7,11 @@ import internalRoute from "./routes/internal.routes.js";
 
 dotenv.config();
 
+if (!process.env.INTERNAL_SERVICE_KEY || !process.env.JWT_SECRET) {
+  console.error("FATAL ERROR: INTERNAL_SERVICE_KEY and JWT_SECRET must be set");
+  process.exit(1);
+}
+
 const app = express();
 
 app.use(cors());
