@@ -337,6 +337,9 @@ const MenuItemCard = ({
             }}
           >
             <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={isEditing ? `Edit ${item.name}` : item.name}
               className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
@@ -345,6 +348,7 @@ const MenuItemCard = ({
                   setIsModalOpen(false);
                   if (isEditing) handleCancel();
                 }}
+                aria-label="Close dialog"
                 className="absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-colors"
               >
                 <BiX className="h-6 w-6" />

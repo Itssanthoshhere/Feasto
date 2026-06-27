@@ -1,4 +1,17 @@
-export const ACTIVE_STATUSES = [
+export const ORDER_STATUSES = [
+  "placed",
+  "accepted",
+  "preparing",
+  "ready_for_rider",
+  "rider_assigned",
+  "picked_up",
+  "delivered",
+  "cancelled",
+] as const;
+
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export const ACTIVE_STATUSES: readonly OrderStatus[] = [
   "placed",
   "accepted",
   "preparing",
@@ -7,7 +20,8 @@ export const ACTIVE_STATUSES = [
   "picked_up",
 ];
 
-export const STATUS_FLOW = [
+/** Linear progression flow (excludes cancelled — it's a terminal branch). */
+export const STATUS_FLOW: readonly OrderStatus[] = [
   "placed",
   "accepted",
   "preparing",
@@ -17,17 +31,16 @@ export const STATUS_FLOW = [
   "delivered",
 ];
 
-export const STATUS_META: Record<
-  string,
-  {
-    label: string;
-    icon: string;
-    accent: string;
-    bg: string;
-    border: string;
-    text: string;
-  }
-> = {
+interface StatusMeta {
+  label: string;
+  icon: string;
+  accent: string;
+  bg: string;
+  border: string;
+  text: string;
+}
+
+export const STATUS_META: Record<OrderStatus, StatusMeta> = {
   placed: {
     label: "Order Placed",
     icon: "📋",

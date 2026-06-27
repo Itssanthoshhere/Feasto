@@ -154,8 +154,11 @@ const OrderPage = () => {
     );
   }
 
-  const meta = STATUS_META[order.status] || STATUS_META.placed;
-  const currentStepIndex = STATUS_FLOW.indexOf(order.status);
+  const meta =
+    STATUS_META[order.status as keyof typeof STATUS_META] ?? STATUS_META.placed;
+  const currentStepIndex = STATUS_FLOW.indexOf(
+    order.status as (typeof STATUS_FLOW)[number],
+  );
   const isCancelled = order.status === "cancelled";
 
   return (
