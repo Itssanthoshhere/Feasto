@@ -19,6 +19,8 @@ app.use(
       "http://localhost:8001", // Auth service
       "http://localhost:8002", // Restaurant service
       "http://localhost:8003", // Utils service
+      "http://localhost:8004", // Realtime service
+      "http://localhost:8005", // Rider service
     ],
     credentials: true,
   }),
