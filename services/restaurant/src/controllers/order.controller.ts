@@ -239,6 +239,14 @@ export const fetchRestaurantOrders = TryCatch(
       });
     }
 
+    const restaurant = await Restaurant.findById(restaurantId);
+
+    if (!restaurant || restaurant.ownerId !== user._id.toString()) {
+      return res.status(401).json({
+        message: "You are not authorized to access this restaurant's orders",
+      });
+    }
+
     const limit = req.query.limit ? Number(req.query.limit) : 0;
 
     const orders = await Order.find({ restaurantId, paymentStatus: "paid" })
@@ -306,22 +314,30 @@ export const updateOrderStatus = TryCatch(
 
     await order.save();
 
-    await axios.post(
-      `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
-      {
-        event: "order:update",
-        room: `user:${order.userId}`,
-        payload: {
-          orderId: order._id,
-          status: order.status,
+    axios
+      .post(
+        `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
+        {
+          event: "order:update",
+          room: `user:${order.userId}`,
+          payload: {
+            orderId: order._id,
+            status: order.status,
+          },
         },
-      },
-      {
-        headers: {
-          "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+          },
+          timeout: 2000,
         },
-      },
-    );
+      )
+      .catch((err) => {
+        console.warn(
+          "Failed to emit order:update event to realtime service:",
+          err.message,
+        );
+      });
 
     // TODO: Now assign riders
 

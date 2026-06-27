@@ -99,57 +99,6 @@ const Restaurant = () => {
 
         <RestaurantOrders restaurantId={restaurant._id} />
 
-        {/* Dashboard */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            {
-              label: "Total Orders",
-              value: "0",
-              trend: "+0%",
-              color: "text-blue-600",
-              bg: "bg-blue-50",
-            },
-            {
-              label: "Revenue",
-              value: "$0.00",
-              trend: "+0%",
-              color: "text-green-600",
-              bg: "bg-green-50",
-            },
-            {
-              label: "Active Menu Items",
-              value: menuItems.length.toString(),
-              trend: "Needs setup",
-              color: "text-purple-600",
-              bg: "bg-purple-50",
-            },
-            {
-              label: "Rating",
-              value: restaurant.rating.toFixed(1),
-              trend: `${restaurant.totalReviews} reviews`,
-              color: "text-orange-600",
-              bg: "bg-orange-50",
-            },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col"
-            >
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                {stat.label}
-              </span>
-              <div className="flex items-end justify-between mt-auto">
-                <span className={`text-2xl font-extrabold ${stat.color}`}>
-                  {stat.value}
-                </span>
-                <span className="text-xs font-semibold text-slate-400 mb-1">
-                  {stat.trend}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
           <div className="flex border-b border-slate-100">
             {[

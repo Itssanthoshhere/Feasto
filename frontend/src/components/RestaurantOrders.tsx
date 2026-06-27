@@ -6,15 +6,7 @@ import axios from "axios";
 import { restaurantService } from "../main";
 import OrderCard from "./OrderCard";
 import toast from "react-hot-toast";
-
-const ACTIVE_STATUSES = [
-  "placed",
-  "accepted",
-  "preparing",
-  "ready_for_rider",
-  "rider_assigned",
-  "picked_up",
-];
+import { ACTIVE_STATUSES } from "../config/orderConstants";
 
 type FilterKey =
   | "all"
@@ -36,6 +28,7 @@ const FILTER_TABS: { key: FilterKey; label: string; icon: string }[] = [
 const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [audioUnlocked, setAudioUnlocked] = useState(() => {
     return localStorage.getItem("soundEnabled") === "true";
   });
@@ -75,6 +68,7 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
 
   const fetchOrders = async () => {
     try {
+      setError(null);
       const { data } = await axios.get(
         `${restaurantService}/api/order/restaurant/${restaurantId}`,
         {
@@ -85,8 +79,13 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
       );
 
       setOrders(data.orders || []);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Failed to fetch orders");
+      } else {
+        setError("Failed to fetch orders");
+      }
     } finally {
       setLoading(false);
     }
@@ -101,8 +100,8 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
 
     socket.emit("joinRestaurantRoom", restaurantId);
 
-    const onNewOrder = () => {
-      console.log("New Order recived socket");
+    const onOrderEvent = () => {
+      console.log("Order event received socket");
 
       // Flash the new order indicator
       setNewOrderFlash(true);
@@ -124,10 +123,12 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
       fetchOrders();
     };
 
-    socket.on("order:new", onNewOrder);
+    socket.on("order:new", onOrderEvent);
+    socket.on("order:update", onOrderEvent);
 
     return () => {
-      socket.off("order:new", onNewOrder);
+      socket.off("order:new", onOrderEvent);
+      socket.off("order:update", onOrderEvent);
     };
   }, [socket, audioUnlocked, restaurantId]);
 
@@ -139,11 +140,8 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
   const placedOrders = activeOrders.filter((o) => o.status === "placed");
   const acceptedOrders = activeOrders.filter((o) => o.status === "accepted");
   const preparingOrders = activeOrders.filter((o) => o.status === "preparing");
-  const readyOrders = activeOrders.filter(
-    (o) =>
-      o.status === "ready_for_rider" ||
-      o.status === "rider_assigned" ||
-      o.status === "picked_up",
+  const readyOrders = activeOrders.filter((o) =>
+    ["ready_for_rider", "rider_assigned", "picked_up"].includes(o.status),
   );
 
   const countByFilter: Record<FilterKey, number> = {
@@ -343,6 +341,20 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
                 className="animate-pulse rounded-2xl bg-gray-50 h-52"
               />
             ))}
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <span className="text-4xl mb-4">⚠️</span>
+            <p className="text-base font-bold text-gray-700">
+              Failed to load orders
+            </p>
+            <p className="text-sm text-gray-400 mt-1">{error}</p>
+            <button
+              onClick={fetchOrders}
+              className="mt-4 text-[#FF5A1F] font-semibold text-sm hover:underline"
+            >
+              Try Again
+            </button>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">

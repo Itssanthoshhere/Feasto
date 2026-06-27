@@ -11,93 +11,7 @@ import {
   BiPhone,
   BiPackage,
 } from "react-icons/bi";
-
-const STATUS_FLOW = [
-  "placed",
-  "accepted",
-  "preparing",
-  "ready_for_rider",
-  "rider_assigned",
-  "picked_up",
-  "delivered",
-];
-
-const STATUS_META: Record<
-  string,
-  {
-    label: string;
-    icon: string;
-    accent: string;
-    bg: string;
-    border: string;
-    text: string;
-  }
-> = {
-  placed: {
-    label: "Order Placed",
-    icon: "📋",
-    accent: "from-amber-400 to-orange-400",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    text: "text-amber-700",
-  },
-  accepted: {
-    label: "Accepted",
-    icon: "✅",
-    accent: "from-emerald-400 to-teal-400",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    text: "text-emerald-700",
-  },
-  preparing: {
-    label: "Preparing",
-    icon: "👨‍🍳",
-    accent: "from-blue-400 to-cyan-400",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-700",
-  },
-  ready_for_rider: {
-    label: "Ready for Pickup",
-    icon: "📦",
-    accent: "from-indigo-400 to-violet-400",
-    bg: "bg-indigo-50",
-    border: "border-indigo-200",
-    text: "text-indigo-700",
-  },
-  rider_assigned: {
-    label: "Rider Assigned",
-    icon: "🏍️",
-    accent: "from-violet-400 to-purple-400",
-    bg: "bg-violet-50",
-    border: "border-violet-200",
-    text: "text-violet-700",
-  },
-  picked_up: {
-    label: "On the Way",
-    icon: "🚀",
-    accent: "from-purple-400 to-pink-400",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    text: "text-purple-700",
-  },
-  delivered: {
-    label: "Delivered",
-    icon: "🎉",
-    accent: "from-green-400 to-emerald-400",
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-700",
-  },
-  cancelled: {
-    label: "Cancelled",
-    icon: "❌",
-    accent: "from-red-400 to-rose-400",
-    bg: "bg-red-50",
-    border: "border-red-200",
-    text: "text-red-700",
-  },
-};
+import { STATUS_FLOW, STATUS_META } from "../config/orderConstants";
 
 const OrderPage = () => {
   const { id } = useParams();
@@ -105,11 +19,15 @@ const OrderPage = () => {
   const navigate = useNavigate();
 
   const [order, setOrder] = useState<IOrder | null>(null);
-
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
   const fetchOrder = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      setNotFound(false);
       const { data } = await axios.get(`${restaurantService}/api/order/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -117,8 +35,17 @@ const OrderPage = () => {
       });
 
       setOrder(data);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(err.response?.data?.message || "Failed to load order.");
+        }
+      } else {
+        setError("Failed to load order.");
+      }
     } finally {
       setLoading(false);
     }
@@ -157,7 +84,56 @@ const OrderPage = () => {
     );
   }
 
-  if (!order) {
+  if (notFound || (!order && !loading && !error)) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl">
+          🤷‍♂️
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">Order Not Found</h2>
+        <p className="text-slate-500 max-w-sm">
+          We couldn't find the order you were looking for. It may have been
+          deleted or the link is invalid.
+        </p>
+        <button
+          onClick={() => navigate("/orders")}
+          className="mt-4 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition"
+        >
+          Back to Orders
+        </button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-3xl">
+          ⚠️
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">
+          Failed to Load Order
+        </h2>
+        <p className="text-slate-500 max-w-sm">{error}</p>
+        <div className="flex items-center gap-3 mt-4">
+          <button
+            onClick={() => navigate("/orders")}
+            className="px-6 py-2.5 rounded-xl bg-slate-200 text-slate-800 font-medium hover:bg-slate-300 transition"
+          >
+            Go Back
+          </button>
+          <button
+            onClick={fetchOrder}
+            className="px-6 py-2.5 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound || !order) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-3xl">
@@ -203,10 +179,6 @@ const OrderPage = () => {
               </p>
             </div>
           </div>
-
-          <button className="text-sm font-medium text-[#FF5A1F] hover:text-[#e14b14]">
-            Help
-          </button>
         </div>
       </div>
 

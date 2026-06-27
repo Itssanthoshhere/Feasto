@@ -55,8 +55,14 @@ export const initSocket = (server: http.Server) => {
 
     socket.on("joinRestaurantRoom", (restaurantId) => {
       if (restaurantId) {
-        socket.join(`restaurant:${restaurantId}`);
-        console.log(`User ${userId} joined room restaurant:${restaurantId}`);
+        if (user.restaurantId === restaurantId) {
+          socket.join(`restaurant:${restaurantId}`);
+          console.log(`User ${userId} joined room restaurant:${restaurantId}`);
+        } else {
+          console.warn(
+            `Unauthorized room join attempt by user ${userId} for restaurant ${restaurantId}`,
+          );
+        }
       }
     });
 
