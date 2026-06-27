@@ -45,8 +45,7 @@ export const startPaymentConsumer = async () => {
 
       console.log("✅Order Placed:", order._id);
 
-      //   socket work
-
+      // Socket work
       await axios.post(
         `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
         {

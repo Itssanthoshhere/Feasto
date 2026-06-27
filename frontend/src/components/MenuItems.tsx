@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { IMenuItem } from "../types";
 import { FiEyeOff } from "react-icons/fi";
 import { BsCartPlus, BsEye } from "react-icons/bs";
@@ -325,190 +326,196 @@ const MenuItemCard = ({
         </div>
       </div>
 
-      {/* Item Detail Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in"
-          onClick={() => {
-            setIsModalOpen(false);
-            if (isEditing) handleCancel();
-          }}
-        >
+      {/* Item Detail Modal — rendered via portal to escape overflow-hidden ancestors */}
+      {isModalOpen &&
+        createPortal(
           <div
-            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in"
+            onClick={() => {
+              setIsModalOpen(false);
+              if (isEditing) handleCancel();
+            }}
           >
-            <button
-              onClick={() => {
-                setIsModalOpen(false);
-                if (isEditing) handleCancel();
-              }}
-              className="absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-colors"
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={isEditing ? `Edit ${item.name}` : item.name}
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
             >
-              <BiX className="h-6 w-6" />
-            </button>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  if (isEditing) handleCancel();
+                }}
+                aria-label="Close dialog"
+                className="absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-colors"
+              >
+                <BiX className="h-6 w-6" />
+              </button>
 
-            {isEditing ? (
-              <div className="overflow-y-auto flex-1 flex flex-col">
-                <div className="relative w-full h-48 shrink-0 bg-slate-100 group">
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      alt="Preview"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-slate-400">
-                      <span className="text-4xl">📸</span>
+              {isEditing ? (
+                <div className="overflow-y-auto max-h-[90vh]">
+                  <div className="relative w-full h-48 shrink-0 bg-slate-100 group">
+                    {previewUrl ? (
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-slate-400">
+                        <span className="text-4xl">📸</span>
+                      </div>
+                    )}
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white font-bold text-sm backdrop-blur-sm">
+                      Change Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  </div>
+                  <div className="p-6 flex flex-col gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">
+                        Name
+                      </label>
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Item name"
+                        className="w-full text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#FF5A1F] transition-colors"
+                      />
                     </div>
-                  )}
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white font-bold text-sm backdrop-blur-sm">
-                    Change Image
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                </div>
-                <div className="p-6 flex flex-col gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
-                      Name
-                    </label>
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Item name"
-                      className="w-full text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#FF5A1F] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
-                      Price (₹)
-                    </label>
-                    <input
-                      type="number"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="Price"
-                      className="w-full text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#FF5A1F] transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
-                      Description
-                    </label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Item description"
-                      rows={3}
-                      className="w-full text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#FF5A1F] transition-colors resize-none"
-                    />
-                  </div>
-                  <div className="flex items-center justify-end gap-3 mt-2">
-                    <button
-                      onClick={handleCancel}
-                      disabled={isLoading}
-                      className="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={isLoading}
-                      className="px-4 py-2.5 text-xs font-bold text-white bg-[#FF5A1F] hover:bg-[#e8521c] rounded-lg shadow-md shadow-[#FF5A1F]/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      {isLoading && (
-                        <VscLoading size={14} className="animate-spin" />
-                      )}
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="overflow-y-auto flex-1 flex flex-col">
-                <div className="w-full h-56 sm:h-64 shrink-0 bg-slate-100 relative">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <span className="text-6xl">🍽️</span>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">
+                        Price (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="Price"
+                        className="w-full text-sm font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#FF5A1F] transition-colors"
+                      />
                     </div>
-                  )}
-                </div>
-
-                <div className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-2xl font-extrabold text-slate-900">
-                      {item.name}
-                    </h3>
-                    <span className="text-xl font-black text-[#FF5A1F] shrink-0">
-                      ₹{item.price}
-                    </span>
-                  </div>
-
-                  {item.description ? (
-                    <p className="mt-4 text-sm font-medium leading-relaxed text-slate-600">
-                      {item.description}
-                    </p>
-                  ) : (
-                    <p className="mt-4 text-sm italic text-slate-400">
-                      No description provided.
-                    </p>
-                  )}
-
-                  {!isSeller ? (
-                    <div className="mt-8">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">
+                        Description
+                      </label>
+                      <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Item description"
+                        rows={3}
+                        className="w-full text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#FF5A1F] transition-colors resize-none"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end gap-3 mt-2">
                       <button
-                        disabled={!item.isAvailable || isLoading}
-                        onClick={() => {
-                          onAddToCart(item.restaurantId, item._id);
-                          setIsModalOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold shadow-md transition-all ${
-                          !item.isAvailable || isLoading
-                            ? "cursor-not-allowed bg-slate-100 text-slate-400"
-                            : "bg-[#FF5A1F] text-white shadow-[#FF5A1F]/20 hover:bg-[#e8521c] active:scale-[0.98]"
-                        }`}
-                      >
-                        {isLoading ? (
-                          <VscLoading size={20} className="animate-spin" />
-                        ) : (
-                          <BsCartPlus size={20} />
-                        )}
-                        {item.isAvailable
-                          ? "Add to Cart"
-                          : "Currently Unavailable"}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-8">
-                      <button
+                        onClick={handleCancel}
                         disabled={isLoading}
-                        onClick={() => {
-                          setIsEditing(true);
-                        }}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold shadow-md transition-all bg-blue-50 text-blue-600 hover:bg-blue-100 active:scale-[0.98] disabled:opacity-50"
+                        className="px-4 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50"
                       >
-                        <BiEdit size={20} />
-                        Edit Item
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        disabled={isLoading}
+                        className="px-4 py-2.5 text-xs font-bold text-white bg-[#FF5A1F] hover:bg-[#e8521c] rounded-lg shadow-md shadow-[#FF5A1F]/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {isLoading && (
+                          <VscLoading size={14} className="animate-spin" />
+                        )}
+                        Save Changes
                       </button>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              ) : (
+                <div className="overflow-y-auto max-h-[90vh]">
+                  <div className="w-full h-56 sm:h-64 shrink-0 bg-slate-100 relative">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <span className="text-6xl">🍽️</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="text-2xl font-extrabold text-slate-900">
+                        {item.name}
+                      </h3>
+                      <span className="text-xl font-black text-[#FF5A1F] shrink-0">
+                        ₹{item.price}
+                      </span>
+                    </div>
+
+                    {item.description ? (
+                      <p className="mt-4 text-sm font-medium leading-relaxed text-slate-600">
+                        {item.description}
+                      </p>
+                    ) : (
+                      <p className="mt-4 text-sm italic text-slate-400">
+                        No description provided.
+                      </p>
+                    )}
+
+                    {!isSeller ? (
+                      <div className="mt-8">
+                        <button
+                          disabled={!item.isAvailable || isLoading}
+                          onClick={() => {
+                            onAddToCart(item.restaurantId, item._id);
+                            setIsModalOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold shadow-md transition-all ${
+                            !item.isAvailable || isLoading
+                              ? "cursor-not-allowed bg-slate-100 text-slate-400"
+                              : "bg-[#FF5A1F] text-white shadow-[#FF5A1F]/20 hover:bg-[#e8521c] active:scale-[0.98]"
+                          }`}
+                        >
+                          {isLoading ? (
+                            <VscLoading size={20} className="animate-spin" />
+                          ) : (
+                            <BsCartPlus size={20} />
+                          )}
+                          {item.isAvailable
+                            ? "Add to Cart"
+                            : "Currently Unavailable"}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-8">
+                        <button
+                          disabled={isLoading}
+                          onClick={() => {
+                            setIsEditing(true);
+                          }}
+                          className="w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold shadow-md transition-all bg-blue-50 text-blue-600 hover:bg-blue-100 active:scale-[0.98] disabled:opacity-50"
+                        >
+                          <BiEdit size={20} />
+                          Edit Item
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 };
