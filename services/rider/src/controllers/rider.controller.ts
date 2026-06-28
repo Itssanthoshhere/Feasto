@@ -56,6 +56,17 @@ export const addRiderProfile = TryCatch(
       });
     }
 
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: "Invalid Phone Number. Must be exactly 10 digits." });
+    }
+    if (!/^\d{12}$/.test(aadhaarNumber)) {
+      return res.status(400).json({ message: "Invalid Aadhaar Number. Must be exactly 12 digits." });
+    }
+    if (!/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))) {
+      return res.status(400).json({ message: "Invalid Driving License. Must be 15 or 16 alphanumeric characters." });
+    }
+
+
     const existingProfile = await Rider.findOne({
       userId: user._id,
     });
@@ -397,5 +408,98 @@ export const updateRiderLocation = TryCatch(
     );
 
     res.status(200).json({ success: true });
+  },
+);
+
+// Internal endpoint — called by restaurant service on delivery
+export const incrementRiderEarnings = TryCatch(async (req, res) => {
+  if (req.headers["x-internal-key"] !== process.env.INTERNAL_SERVICE_KEY) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const { riderId, amount } = req.body;
+
+  if (!riderId || !amount) {
+    return res.status(400).json({ message: "riderId and amount are required" });
+  }
+
+  const rider = await Rider.findByIdAndUpdate(
+    riderId,
+    {
+      $inc: { totalEarnings: amount, totalDeliveries: 1 },
+    },
+    { new: true },
+  );
+
+  if (!rider) {
+    return res.status(404).json({ message: "Rider not found" });
+  }
+
+  res.json({ success: true, totalEarnings: rider.totalEarnings, totalDeliveries: rider.totalDeliveries });
+});
+
+// Authenticated — rider edits their own profile
+export const updateRiderProfile = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Please Login" });
+    }
+
+    const rider = await Rider.findOne({ userId });
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider profile not found" });
+    }
+
+    const { phoneNumber, aadhaarNumber, drivingLicenseNumber } = req.body;
+
+    if (phoneNumber) {
+      if (!/^\d{10}$/.test(phoneNumber)) {
+        return res.status(400).json({ message: "Invalid Phone Number. Must be exactly 10 digits." });
+      }
+      rider.phoneNumber = phoneNumber;
+    }
+
+    if (aadhaarNumber) {
+      if (!/^\d{12}$/.test(aadhaarNumber)) {
+        return res.status(400).json({ message: "Invalid Aadhaar Number. Must be exactly 12 digits." });
+      }
+      rider.aadhaarNumber = aadhaarNumber;
+    }
+
+    if (drivingLicenseNumber) {
+      if (!/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))) {
+        return res.status(400).json({ message: "Invalid Driving License. Must be 15 or 16 alphanumeric characters." });
+      }
+      rider.drivingLicenseNumber = drivingLicenseNumber;
+    }
+
+    // Handle optional picture upload
+    const file = req.file;
+    if (file) {
+      const fileBuffer = getBuffer(file);
+      if (!fileBuffer?.content) {
+        return res.status(500).json({ message: "Failed to generate image buffer" });
+      }
+
+      try {
+        const { data } = await axios.post(
+          `${process.env.UTILS_SERVICE}/api/upload`,
+          { buffer: fileBuffer.content },
+          { timeout: 10000 },
+        );
+        rider.picture = data.url;
+      } catch (uploadError: any) {
+        return res.status(503).json({
+          message: "Image upload failed, please try again",
+        });
+      }
+    }
+
+    await rider.save();
+
+    res.json({ message: "Profile updated successfully", rider });
   },
 );

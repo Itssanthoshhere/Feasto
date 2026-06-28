@@ -5,9 +5,11 @@ import {
   addRiderProfile,
   fetchMyCurrentOrder,
   fetchMyProfile,
+  incrementRiderEarnings,
   toggleRiderAvailablity,
   updateOrderStatus,
   updateRiderLocation,
+  updateRiderProfile,
 } from "../controllers/rider.controller.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -21,5 +23,7 @@ router.post("/accept/:orderId", isAuth, acceptOrder);
 router.get("/order/current", isAuth, fetchMyCurrentOrder);
 router.put("/order/update/:orderId", isAuth, updateOrderStatus);
 router.post("/location", isAuth, updateRiderLocation);
+router.patch("/profile", isAuth, uploadFile, updateRiderProfile);
+router.post("/internal/earnings", incrementRiderEarnings);
 
 export default router;

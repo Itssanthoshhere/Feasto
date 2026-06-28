@@ -637,6 +637,27 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
       },
     );
 
+    // Increment rider earnings
+    if (order.riderId) {
+      try {
+        await axios.post(
+          `${process.env.RIDER_SERVICE}/api/rider/internal/earnings`,
+          {
+            riderId: order.riderId,
+            amount: order.riderAmount,
+          },
+          {
+            headers: {
+              "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+            },
+            timeout: 5000,
+          },
+        );
+      } catch (earningsError) {
+        console.error("Failed to update rider earnings:", earningsError);
+      }
+    }
+
     return res.json({
       message: "Order updated Successfully",
     });
