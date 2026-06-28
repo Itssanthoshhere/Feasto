@@ -7,7 +7,7 @@ export const startOrderReadyConsumer = async () => {
 
   console.log("Starting to consume from:", process.env.ORDER_READY_QUEUE);
 
-  channel.consume(process.env.ORDER_READY_QUEUE!, async (msg) => {
+  return await channel.consume(process.env.ORDER_READY_QUEUE!, async (msg) => {
     if (!msg) return;
 
     try {

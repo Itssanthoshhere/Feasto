@@ -17,9 +17,14 @@ export const connectRabbitMQ = async () => {
       if (!isReconnecting) {
         isReconnecting = true;
         setTimeout(async () => {
-          await connectRabbitMQ();
-          startOrderReadyConsumer();
-          isReconnecting = false;
+          try {
+            await connectRabbitMQ();
+            await startOrderReadyConsumer();
+          } catch (err) {
+            console.error("Reconnect attempt failed", err);
+          } finally {
+            isReconnecting = false;
+          }
         }, 5000);
       }
     });
@@ -44,14 +49,7 @@ export const connectRabbitMQ = async () => {
     console.log("🐇 connected To Rabbitmq(rider service)");
   } catch (error) {
     console.error("Failed to connect to RabbitMQ", error);
-    if (!isReconnecting) {
-      isReconnecting = true;
-      setTimeout(async () => {
-        await connectRabbitMQ();
-        startOrderReadyConsumer();
-        isReconnecting = false;
-      }, 5000);
-    }
+    throw error;
   }
 };
 

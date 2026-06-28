@@ -111,19 +111,24 @@ const RiderOrderMap = ({ order }: Props) => {
 
           setRiderLocation([latitude, longitude]);
 
-          axios.post(
-            `${riderService}/api/rider/location`,
-            {
-              orderId: order._id,
-              latitude,
-              longitude,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+          axios
+            .post(
+              `${riderService}/api/rider/location`,
+              {
+                orderId: order._id,
+                latitude,
+                longitude,
               },
-            },
-          );
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                timeout: 5000,
+              },
+            )
+            .catch((err) => {
+              console.error("Location reporting failed:", err?.message || err);
+            });
         },
         (err) => console.log("Location Error:", err),
         {

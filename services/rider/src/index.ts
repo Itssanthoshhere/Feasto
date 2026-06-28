@@ -20,7 +20,7 @@ const startServer = async () => {
   try {
     await connectDB();
     await connectRabbitMQ();
-    startOrderReadyConsumer();
+    await startOrderReadyConsumer();
     app.listen(process.env.PORT, () => {
       console.log(`Rider service is running on port ${process.env.PORT}`);
     });
