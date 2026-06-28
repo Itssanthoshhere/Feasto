@@ -16,16 +16,18 @@ export const connectRabbitMQ = async () => {
       console.error("RabbitMQ connection closed. Reconnecting...");
       if (!isReconnecting) {
         isReconnecting = true;
-        setTimeout(async () => {
+        const attemptReconnect = async () => {
           try {
             await connectRabbitMQ();
             await startOrderReadyConsumer();
           } catch (err) {
             console.error("Reconnect attempt failed", err);
+            setTimeout(attemptReconnect, 5000);
           } finally {
             isReconnecting = false;
           }
-        }, 5000);
+        };
+        setTimeout(attemptReconnect, 5000);
       }
     });
 

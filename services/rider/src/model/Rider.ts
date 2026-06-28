@@ -12,6 +12,7 @@ export interface IRider extends Document {
     coordinates: [number, number];
   };
   isAvailble: boolean;
+  processedOrders: string[];
   totalEarnings: number;
   totalDeliveries: number;
   lastActiveAt: Date;
@@ -64,6 +65,11 @@ const schema = new Schema<IRider>(
     isAvailble: {
       type: Boolean,
       default: false,
+    },
+
+    processedOrders: {
+      type: [String],
+      default: [],
     },
 
     totalEarnings: {

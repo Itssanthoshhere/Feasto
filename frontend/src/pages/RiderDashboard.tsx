@@ -604,7 +604,10 @@ const RiderDashboard = () => {
                 <input
                   type="tel"
                   value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    if (val.length <= 10) setEditPhone(val);
+                  }}
                   className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
                 />
               </div>
@@ -615,7 +618,10 @@ const RiderDashboard = () => {
                 <input
                   type="text"
                   value={editAadhaar}
-                  onChange={(e) => setEditAadhaar(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    if (val.length <= 12) setEditAadhaar(val);
+                  }}
                   placeholder="Enter new Aadhaar number"
                   className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
                 />
@@ -627,7 +633,12 @@ const RiderDashboard = () => {
                 <input
                   type="text"
                   value={editLicense}
-                  onChange={(e) => setEditLicense(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                      .replace(/[^a-zA-Z0-9]/g, "")
+                      .toUpperCase();
+                    if (val.length <= 16) setEditLicense(val);
+                  }}
                   placeholder="Enter new license number"
                   className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
                 />

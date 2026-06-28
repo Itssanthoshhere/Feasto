@@ -413,26 +413,37 @@ export const updateRiderLocation = TryCatch(
 
 // Internal endpoint — called by restaurant service on delivery
 export const incrementRiderEarnings = TryCatch(async (req, res) => {
-  if (req.headers["x-internal-key"] !== process.env.INTERNAL_SERVICE_KEY) {
+  const expectedKey = process.env.INTERNAL_SERVICE_KEY;
+  if (!expectedKey || req.headers["x-internal-key"] !== expectedKey) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
-  const { riderId, amount } = req.body;
+  const { riderId, amount, orderId } = req.body;
 
-  if (!riderId || !amount) {
-    return res.status(400).json({ message: "riderId and amount are required" });
+  if (!riderId || amount === undefined || !orderId) {
+    return res.status(400).json({ message: "riderId, orderId, and amount are required" });
   }
 
-  const rider = await Rider.findByIdAndUpdate(
-    riderId,
+  const numAmount = Number(amount);
+  if (!Number.isFinite(numAmount) || numAmount < 0) {
+    return res.status(400).json({ message: "Invalid amount" });
+  }
+
+  const rider = await Rider.findOneAndUpdate(
+    { _id: riderId, processedOrders: { $ne: orderId } },
     {
-      $inc: { totalEarnings: amount, totalDeliveries: 1 },
+      $inc: { totalEarnings: numAmount, totalDeliveries: 1 },
+      $push: { processedOrders: orderId }
     },
     { new: true },
   );
 
   if (!rider) {
-    return res.status(404).json({ message: "Rider not found" });
+    const existingRider = await Rider.findById(riderId);
+    if (!existingRider) {
+      return res.status(404).json({ message: "Rider not found" });
+    }
+    return res.json({ success: true, message: "Already processed", totalEarnings: existingRider.totalEarnings, totalDeliveries: existingRider.totalDeliveries });
   }
 
   res.json({ success: true, totalEarnings: rider.totalEarnings, totalDeliveries: rider.totalDeliveries });
@@ -454,6 +465,7 @@ export const updateRiderProfile = TryCatch(
     }
 
     const { phoneNumber, aadhaarNumber, drivingLicenseNumber } = req.body;
+    let identityChanged = false;
 
     if (phoneNumber) {
       if (!/^\d{10}$/.test(phoneNumber)) {
@@ -462,18 +474,20 @@ export const updateRiderProfile = TryCatch(
       rider.phoneNumber = phoneNumber;
     }
 
-    if (aadhaarNumber) {
+    if (aadhaarNumber && aadhaarNumber !== rider.aadhaarNumber) {
       if (!/^\d{12}$/.test(aadhaarNumber)) {
         return res.status(400).json({ message: "Invalid Aadhaar Number. Must be exactly 12 digits." });
       }
       rider.aadhaarNumber = aadhaarNumber;
+      identityChanged = true;
     }
 
-    if (drivingLicenseNumber) {
+    if (drivingLicenseNumber && drivingLicenseNumber !== rider.drivingLicenseNumber) {
       if (!/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))) {
         return res.status(400).json({ message: "Invalid Driving License. Must be 15 or 16 alphanumeric characters." });
       }
       rider.drivingLicenseNumber = drivingLicenseNumber;
+      identityChanged = true;
     }
 
     // Handle optional picture upload
@@ -490,12 +504,20 @@ export const updateRiderProfile = TryCatch(
           { buffer: fileBuffer.content },
           { timeout: 10000 },
         );
-        rider.picture = data.url;
+        if (rider.picture !== data.url) {
+          rider.picture = data.url;
+          identityChanged = true;
+        }
       } catch (uploadError: any) {
         return res.status(503).json({
           message: "Image upload failed, please try again",
         });
       }
+    }
+
+    if (identityChanged && rider.isVerified) {
+      rider.isVerified = false;
+      rider.isAvailble = false;
     }
 
     await rider.save();
