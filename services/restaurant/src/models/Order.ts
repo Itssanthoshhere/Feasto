@@ -7,6 +7,7 @@ export interface IOrder extends Document {
   riderId?: mongoose.Types.ObjectId | null;
   riderPhone: number | null;
   riderName: string | null;
+  riderPicture: string | null;
   distance: number;
   riderAmount: number;
 
@@ -32,14 +33,14 @@ export interface IOrder extends Document {
   };
 
   status:
-    | "placed"
-    | "accepted"
-    | "preparing"
-    | "ready_for_rider"
-    | "rider_assigned"
-    | "picked_up"
-    | "delivered"
-    | "cancelled";
+  | "placed"
+  | "accepted"
+  | "preparing"
+  | "ready_for_rider"
+  | "rider_assigned"
+  | "picked_up"
+  | "delivered"
+  | "cancelled";
 
   paymentMethod: "razorpay" | "stripe";
   paymentStatus: "pending" | "paid" | "failed";
@@ -72,6 +73,10 @@ const OrderSchema = new Schema<IOrder>(
       default: null,
     },
     riderName: {
+      type: String,
+      default: null,
+    },
+    riderPicture: {
       type: String,
       default: null,
     },
@@ -150,7 +155,7 @@ const OrderSchema = new Schema<IOrder>(
 
     expiresAt: {
       type: Date,
-      index: { 
+      index: {
         expireAfterSeconds: 0,
         partialFilterExpression: { paymentStatus: "pending" }
       },

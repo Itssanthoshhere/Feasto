@@ -49,9 +49,9 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return +(R * c).toFixed(2);
@@ -411,7 +411,7 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
     });
   }
 
-  const { orderId, riderId, riderName, riderPhone } = req.body;
+  const { orderId, riderId, riderName, riderPicture, riderPhone } = req.body;
 
   const orderAvailable = await Order.findOne({
     riderId,
@@ -437,6 +437,7 @@ export const assignRiderToOrder = TryCatch(async (req, res) => {
     {
       riderId,
       riderName,
+      riderPicture,
       riderPhone,
       status: "rider_assigned",
     },

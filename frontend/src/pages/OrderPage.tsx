@@ -400,8 +400,16 @@ const OrderPage = () => {
         {order.riderName && (
           <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-3xl p-1 shadow-lg shadow-violet-500/20">
             <div className="bg-white/95 backdrop-blur rounded-[22px] p-5 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center shrink-0 border-2 border-violet-200">
-                <span className="text-2xl">🏍️</span>
+              <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center shrink-0 border-2 border-violet-200 overflow-hidden">
+                {order.riderPicture ? (
+                  <img
+                    src={order.riderPicture}
+                    alt={order.riderName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl">🏍️</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-violet-500 mb-1">

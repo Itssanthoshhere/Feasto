@@ -41,23 +41,19 @@ export const createReview = async (
       comment,
     });
 
-    // 3. Update the restaurant's average rating and totalReviews atomically
-    await Restaurant.updateOne(
-      { _id: order.restaurantId },
-      [
-        {
-          $set: {
-            rating: {
-              $divide: [
-                { $add: [{ $multiply: [{ $ifNull: ["$rating", 0] }, { $ifNull: ["$totalReviews", 0] }] }, rating] },
-                { $add: [{ $ifNull: ["$totalReviews", 0] }, 1] }
-              ]
-            },
-            totalReviews: { $add: [{ $ifNull: ["$totalReviews", 0] }, 1] }
-          }
-        }
-      ]
-    );
+    // 3. Update the restaurant's average rating and totalReviews
+    const restaurant = await Restaurant.findById(order.restaurantId);
+    if (restaurant) {
+      const currentTotalReviews = restaurant.totalReviews || 0;
+      const currentRating = restaurant.rating || 0;
+
+      const newTotalReviews = currentTotalReviews + 1;
+      const newRating = ((currentRating * currentTotalReviews) + rating) / newTotalReviews;
+
+      restaurant.rating = newRating;
+      restaurant.totalReviews = newTotalReviews;
+      await restaurant.save();
+    }
 
     res.status(201).json({
       message: "Review submitted successfully",
