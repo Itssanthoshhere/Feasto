@@ -645,6 +645,7 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
           {
             riderId: order.riderId,
             amount: order.riderAmount,
+            orderId: order._id,
           },
           {
             headers: {

@@ -8,6 +8,7 @@ import {
   BiUpload,
   BiLogOut,
   BiCheckShield,
+  BiShieldX,
   BiEdit,
   BiWallet,
   BiPackage,
@@ -451,6 +452,18 @@ const RiderDashboard = () => {
         </div>
 
         <div className="mx-auto max-w-md px-4 py-6 space-y-6">
+          {!profile.isVerified && (
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-center shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+              <h3 className="text-amber-800 font-bold text-sm mb-1 flex items-center justify-center gap-1.5">
+                <BiShieldX size={18} /> Verification Pending
+              </h3>
+              <p className="text-amber-600 text-xs">
+                Your profile is unverified. Please ensure your documents are
+                correct. You will receive orders once approved.
+              </p>
+            </div>
+          )}
+
           {/* ── Profile Card ── */}
           <div className="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 p-6 flex flex-col items-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-24 bg-linear-to-r from-orange-400 to-amber-500 opacity-20"></div>
@@ -461,9 +474,19 @@ const RiderDashboard = () => {
                 className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-md z-10 relative"
                 alt=""
               />
-              {profile.isVerified && (
-                <div className="absolute bottom-0 right-0 bg-green-500 text-white rounded-full p-1 border-2 border-white shadow-sm z-20">
+              {profile.isVerified ? (
+                <div
+                  className="absolute bottom-0 right-0 bg-green-500 text-white rounded-full p-1 border-2 border-white shadow-sm z-20"
+                  title="Verified"
+                >
                   <BiCheckShield size={16} />
+                </div>
+              ) : (
+                <div
+                  className="absolute bottom-0 right-0 bg-amber-500 text-white rounded-full p-1 border-2 border-white shadow-sm z-20"
+                  title="Unverified"
+                >
+                  <BiShieldX size={16} />
                 </div>
               )}
             </div>
@@ -638,6 +661,7 @@ const RiderDashboard = () => {
                       .replace(/[^a-zA-Z0-9]/g, "")
                       .toUpperCase();
                     if (val.length <= 16) setEditLicense(val);
+                    setEditLicense(e.target.value);
                   }}
                   placeholder="Enter new license number"
                   className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
