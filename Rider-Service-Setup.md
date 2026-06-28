@@ -18,13 +18,13 @@ Install the required production and development dependencies.
 ### Core Dependencies
 
 ```bash
-npm i express dotenv jsonwebtoken mongoose cors axios multer datauri
+npm i express dotenv jsonwebtoken mongoose cors axios multer datauri amqplib
 ```
 
 ### Development Dependencies
 
 ```bash
-npm i -D typescript concurrently @types/express @types/dotenv @types/jsonwebtoken @types/mongoose @types/cors @types/multer @types/node
+npm i -D typescript concurrently @types/express @types/jsonwebtoken @types/cors @types/multer @types/node @types/amqplib
 ```
 
 ## 3. Package.json Configuration
@@ -40,7 +40,7 @@ To match the ESM (ECMAScript Modules) setup of `auth` and `realtime`, you must a
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "concurrently \"tsc --watch\" \"node --watch dist/index.js\""
+    "dev": "tsc && concurrently \"tsc --watch\" \"node --watch dist/index.js\""
   }
 }
 ```
@@ -88,7 +88,7 @@ services/rider/
 │   ├── config/
 │   ├── controllers/
 │   ├── middlewares/
-│   ├── models/
+│   ├── model/
 │   ├── routes/
 │   ├── utils/
 │   └── index.ts

@@ -80,6 +80,7 @@ export interface IOrder {
   riderId?: string | null;
   riderPhone: number | null;
   riderName: string | null;
+  riderPicture: string | null;
   distance: number;
   riderAmount: number;
 

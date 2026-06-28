@@ -135,7 +135,7 @@ export const updateStatusRestaurant = TryCatch(
         ownerId: req.user._id,
       },
       { isOpen: status },
-      { returnDocument: 'after' },
+      { returnDocument: "after" },
     );
 
     if (!restaurant) {
@@ -175,7 +175,7 @@ export const updateRestaurant = TryCatch(
     const restaurant = await Restaurant.findOneAndUpdate(
       { ownerId: req.user._id },
       updateData,
-      { returnDocument: 'after' },
+      { returnDocument: "after" },
     );
 
     if (!restaurant) {
@@ -231,7 +231,7 @@ export const getNearbyRestaurant = TryCatch(async (req, res) => {
         distanceField: "distance",
         maxDistance: Number(radius),
         spherical: true,
-        // query,
+        query,
       },
     },
     {

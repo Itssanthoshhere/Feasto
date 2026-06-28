@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors";
 import riderRoutes from "./routes/rider.routes.js";
+import { connectRabbitMQ } from "./config/rabbitmq.js";
+import { startOrderReadyConsumer } from "./config/orderReady.consumer.js";
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ app.use("/api/rider", riderRoutes);
 const startServer = async () => {
   try {
     await connectDB();
+    await connectRabbitMQ();
+    await startOrderReadyConsumer();
     app.listen(process.env.PORT, () => {
       console.log(`Rider service is running on port ${process.env.PORT}`);
     });

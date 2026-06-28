@@ -5,6 +5,7 @@ import type { IOrder } from "../types";
 import axios from "axios";
 import { restaurantService } from "../main";
 import ReviewForm from "../components/ReviewForm";
+import UserOrderMap from "../components/UserOrderMap";
 import {
   BiArrowBack,
   BiMap,
@@ -57,18 +58,39 @@ const OrderPage = () => {
   }, [id]);
 
   useEffect(() => {
+    if (!socket || !id) return;
+
+    socket.emit("join", `user:${id}`);
+
+    return () => {
+      socket.emit("leave", `user:${id}`);
+    };
+  }, [socket, id]);
+
+  const [riderLocation, setRiderLocation] = useState<[number, number] | null>(
+    null,
+  );
+
+  useEffect(() => {
     if (!socket) return;
 
     const onOrderUpdate = () => {
       fetchOrder();
     };
 
+    const onRiderLocation = ({ latitude, longitude }: any) => {
+      console.log("Rider Location:", latitude, longitude);
+      setRiderLocation([latitude, longitude]);
+    };
+
     socket.on("order:update", onOrderUpdate);
     socket.on("order:rider_assigned", onOrderUpdate);
+    socket.on("rider:location", onRiderLocation);
 
     return () => {
       socket.off("order:update", onOrderUpdate);
       socket.off("order:rider_assigned", onOrderUpdate);
+      socket.off("rider:location", onRiderLocation);
     };
   }, [socket]);
 
@@ -378,8 +400,16 @@ const OrderPage = () => {
         {order.riderName && (
           <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-3xl p-1 shadow-lg shadow-violet-500/20">
             <div className="bg-white/95 backdrop-blur rounded-[22px] p-5 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center shrink-0 border-2 border-violet-200">
-                <span className="text-2xl">🏍️</span>
+              <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center shrink-0 border-2 border-violet-200 overflow-hidden">
+                {order.riderPicture ? (
+                  <img
+                    src={order.riderPicture}
+                    alt={order.riderName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl">🏍️</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-violet-500 mb-1">
@@ -401,10 +431,35 @@ const OrderPage = () => {
           </div>
         )}
 
+        {/* ── Live Rider Map ── */}
+        {(order.status === "rider_assigned" || order.status === "picked_up") &&
+          (riderLocation ? (
+            <UserOrderMap
+              riderLocation={riderLocation}
+              deliveryLocation={[
+                order.deliveryAddress.latitude!,
+                order.deliveryAddress.longitude!,
+              ]}
+            />
+          ) : (
+            <div className="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 p-2 overflow-hidden h-[366px] flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-50 to-white">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-24 h-24 bg-violet-100 rounded-full animate-ping opacity-60"></div>
+                <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center relative z-10 border-2 border-white shadow-sm">
+                  <span className="text-xl">🛵</span>
+                </div>
+              </div>
+              <p className="text-sm font-bold text-slate-700 mt-4 tracking-wide">
+                Locating your rider...
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Live tracking will appear shortly
+              </p>
+            </div>
+          ))}
+
         {/* ── Leave a Review (if delivered) ── */}
-        {order.status === "delivered" && (
-          <ReviewForm orderId={order._id} />
-        )}
+        {order.status === "delivered" && <ReviewForm orderId={order._id} />}
       </div>
     </div>
   );

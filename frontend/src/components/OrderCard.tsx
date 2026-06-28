@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { IOrder } from "../types";
 import axios from "axios";
 import { restaurantService } from "../main";
@@ -96,6 +96,20 @@ const ACTION_META: Record<string, { label: string; icon: string }> = {
 const OrderCard = ({ order, onStatusUpdate }: Props) => {
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [retryVisible, setRetryVisible] = useState(false);
+
+  useEffect(() => {
+    if (order.status !== "ready_for_rider" || loading) {
+      setRetryVisible(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setRetryVisible(true);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [order.status, loading]);
 
   const actions = ORDER_ACTIONS[order.status] || [];
   const meta = STATUS_META[order.status] || STATUS_META.placed;
@@ -104,6 +118,7 @@ const OrderCard = ({ order, onStatusUpdate }: Props) => {
   const updateStatus = async (status: string) => {
     try {
       setLoading(true);
+      setRetryVisible(false);
 
       await axios.put(
         `${restaurantService}/api/order/${order._id}`,
@@ -325,6 +340,25 @@ const OrderCard = ({ order, onStatusUpdate }: Props) => {
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {order.status === "ready_for_rider" && retryVisible && (
+          <div className="pt-2">
+            <button
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-[#FF5A1F] bg-transparent py-2.5 text-[13px] font-bold text-[#FF5A1F] transition-all duration-200 hover:bg-[#FF5A1F]/5 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => updateStatus("ready_for_rider")}
+            >
+              {loading ? (
+                "🔁"
+              ) : (
+                <>
+                  <span className="text-xs">🔄</span>
+                  Retry Ready for Rider
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>
