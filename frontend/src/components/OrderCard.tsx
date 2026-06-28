@@ -99,7 +99,7 @@ const OrderCard = ({ order, onStatusUpdate }: Props) => {
   const [retryVisible, setRetryVisible] = useState(false);
 
   useEffect(() => {
-    if (order.status !== "ready_for_rider") {
+    if (order.status !== "ready_for_rider" || loading) {
       setRetryVisible(false);
       return;
     }
@@ -109,7 +109,7 @@ const OrderCard = ({ order, onStatusUpdate }: Props) => {
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, [order.status]);
+  }, [order.status, loading]);
 
   const actions = ORDER_ACTIONS[order.status] || [];
   const meta = STATUS_META[order.status] || STATUS_META.placed;

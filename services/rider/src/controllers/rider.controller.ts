@@ -224,10 +224,11 @@ export const acceptOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
         headers: {
           "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
         },
+        timeout: 5000,
       },
     );
 
-    if (data.success) {
+    if (data.success || data.message) {
       const riderDetails = await Rider.findOneAndUpdate(
         {
           userId: riderUserId,
@@ -237,7 +238,17 @@ export const acceptOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
         { new: true },
       );
 
-      res.json({ message: "Order accepted" });
+      if (!riderDetails) {
+        return res
+          .status(400)
+          .json({ message: "Failed to update rider availability" });
+      }
+
+      return res.json({ message: "Order accepted" });
+    } else {
+      return res
+        .status(400)
+        .json({ message: data.message || "Failed to assign order" });
     }
   } catch (error: any) {
     console.error("Fetch current order error:", error.message);
@@ -283,6 +294,7 @@ export const fetchMyCurrentOrder = TryCatch(
           headers: {
             "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
           },
+          timeout: 5000,
         },
       );
       if (normalizedStatus === "current") {
@@ -339,6 +351,7 @@ export const updateOrderStatus = TryCatch(
           headers: {
             "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
           },
+          timeout: 5000,
         },
       );
 
@@ -355,5 +368,34 @@ export const updateOrderStatus = TryCatch(
           "Something went wrong",
       });
     }
+  },
+);
+
+export const updateRiderLocation = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    const { orderId, latitude, longitude } = req.body;
+
+    if (!orderId || !latitude || !longitude) {
+      return res
+        .status(400)
+        .json({ message: "Missing location or order data" });
+    }
+
+    await axios.post(
+      `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
+      {
+        event: "rider:location",
+        room: `user:${orderId}`,
+        payload: { latitude, longitude },
+      },
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+        },
+        timeout: 5000,
+      },
+    );
+
+    res.status(200).json({ success: true });
   },
 );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { riderService } from "../main";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -12,13 +12,17 @@ interface Props {
 const RiderOrderRequest = ({ orderId, onAccepted }: Props) => {
   const [accepting, setAccepting] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(10);
+  const acceptedRef = useRef(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          onAccepted();
+          if (!acceptedRef.current) {
+            acceptedRef.current = true;
+            onAccepted();
+          }
           return 0;
         }
         return prev - 1;
@@ -42,7 +46,10 @@ const RiderOrderRequest = ({ orderId, onAccepted }: Props) => {
       );
 
       toast.success("Order Accepted");
-      onAccepted();
+      if (!acceptedRef.current) {
+        acceptedRef.current = true;
+        onAccepted();
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to accept");
       onAccepted();

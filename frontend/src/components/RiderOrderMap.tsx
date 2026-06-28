@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
-import { realtimeService } from "../main";
+import { riderService } from "../main";
 
 declare module "leaflet" {
   namespace Routing {
@@ -65,7 +65,9 @@ const Routing = ({
         show: false,
         createMarker: () => null,
         router: (L as any).Routing.osrmv1({
-          serviceUrl: "https://router.project-osrm.org/route/v1",
+          serviceUrl:
+            import.meta.env.VITE_OSRM_URL ||
+            "https://router.project-osrm.org/route/v1",
         }),
       }).addTo(map);
     };
@@ -110,15 +112,15 @@ const RiderOrderMap = ({ order }: Props) => {
           setRiderLocation([latitude, longitude]);
 
           axios.post(
-            `${realtimeService}/api/v1/internal/emit`,
+            `${riderService}/api/rider/location`,
             {
-              event: "rider:location",
-              room: `user:${order.userId}`,
-              payload: { latitude, longitude },
+              orderId: order._id,
+              latitude,
+              longitude,
             },
             {
               headers: {
-                "x-internal-key": import.meta.env.VITE_INTERNAL_SERVICE_KEY,
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
             },
           );

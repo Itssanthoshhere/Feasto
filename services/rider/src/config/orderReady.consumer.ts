@@ -61,6 +61,7 @@ export const startOrderReadyConsumer = async () => {
               headers: {
                 "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
               },
+              timeout: 5000,
             },
           );
           console.log(`Notified rider ${rider.userId} successfully`);
@@ -73,6 +74,7 @@ export const startOrderReadyConsumer = async () => {
       console.log("Message acknowledged");
     } catch (error) {
       console.log("OrderReady consumer error:", error);
+      channel.nack(msg, false, false);
     }
   });
 };

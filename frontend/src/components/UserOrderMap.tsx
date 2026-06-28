@@ -42,8 +42,10 @@ const Routing = ({
       draggableWaypoints: false,
       show: false,
       createMarker: () => null,
-      router: L.Routing.osrmv1({
-        serviceUrl: "https://router.project-osrm.org/route/v1",
+      router: (L as any).Routing.osrmv1({
+        serviceUrl:
+          import.meta.env.VITE_OSRM_URL ||
+          "https://router.project-osrm.org/route/v1",
       }),
     }).addTo(map);
 
