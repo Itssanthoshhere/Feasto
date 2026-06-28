@@ -33,16 +33,22 @@ export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
   }
 
   if (menuItem.restaurantId.toString() !== restaurantId.toString()) {
-    return res.status(400).json({ message: "Item does not belong to this restaurant" });
+    return res
+      .status(400)
+      .json({ message: "Item does not belong to this restaurant" });
   }
 
   if (!menuItem.isAvailable) {
-    return res.status(400).json({ message: "This item is currently unavailable." });
+    return res
+      .status(400)
+      .json({ message: "This item is currently unavailable." });
   }
 
-  // if (!restaurant.isOpen || !restaurant.isVerified) {
-  //   return res.status(400).json({ message: "Restaurant is closed or not verified." });
-  // }
+  if (!restaurant.isOpen || !restaurant.isVerified) {
+    return res
+      .status(400)
+      .json({ message: "Restaurant is closed or not verified." });
+  }
 
   const cartFromDifferentRestaurant = await Cart.findOne({
     userId,
@@ -62,7 +68,7 @@ export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
       $inc: { quantity: 1 },
       $setOnInsert: { userId, restaurantId, itemId },
     },
-    { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
+    { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
   );
 
   return res.json({
@@ -124,7 +130,7 @@ export const incrementCartItem = TryCatch(
     const cartItem = await Cart.findOneAndUpdate(
       { userId, itemId },
       { $inc: { quantity: 1 } },
-      { returnDocument: 'after' },
+      { returnDocument: "after" },
     );
 
     if (!cartItem) {

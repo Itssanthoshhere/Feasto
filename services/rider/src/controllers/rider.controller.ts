@@ -182,7 +182,6 @@ export const toggleRiderAvailablity = TryCatch(
         coordinates: [longitude, latitude],
       };
     }
-
     rider.lastActiveAt = new Date();
 
     await rider.save();
@@ -191,5 +190,169 @@ export const toggleRiderAvailablity = TryCatch(
       message: isAvailble ? "Rider is now online" : "Rider is now offline",
       rider,
     });
+  },
+);
+
+export const acceptOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const riderUserId = req.user?._id;
+  const { orderId } = req.params;
+
+  if (!riderUserId) {
+    return res.status(400).json({
+      message: "Please Login",
+    });
+  }
+
+  const rider = await Rider.findOne({ userId: riderUserId, isAvailble: true });
+
+  if (!rider) {
+    return res.status(404).json({ message: "rider not found" });
+  }
+
+  try {
+    const { data } = await axios.put(
+      `${process.env.RESTAURANT_SERVICE}/api/order/assign/rider`,
+      {
+        orderId,
+        riderId: rider._id.toString(),
+        riderUserId: rider.userId,
+        riderName: req.user?.name || "Rider",
+        riderPhone: rider.phoneNumber,
+      },
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+        },
+      },
+    );
+
+    if (data.success) {
+      const riderDetails = await Rider.findOneAndUpdate(
+        {
+          userId: riderUserId,
+          isAvailble: true,
+        },
+        { isAvailble: false },
+        { new: true },
+      );
+
+      res.json({ message: "Order accepted" });
+    }
+  } catch (error: any) {
+    console.error("Fetch current order error:", error.message);
+
+    return res.status(error.response?.status || 500).json({
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong",
+    });
+  }
+});
+
+export const fetchMyCurrentOrder = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    const riderUserId = req.user?._id;
+    const statusQuery =
+      typeof req.query.status === "string" ? req.query.status : "current";
+    const normalizedStatus = statusQuery.toLowerCase();
+
+    if (!riderUserId) {
+      return res.status(400).json({
+        message: "Please Login",
+      });
+    }
+
+    const rider = await Rider.findOne({
+      userId: riderUserId,
+      isVerified: true,
+    });
+
+    if (!rider) {
+      if (normalizedStatus === "current") {
+        return res.json({ order: null });
+      }
+      return res.json({ orders: [] });
+    }
+
+    try {
+      const { data } = await axios.get(
+        `${process.env.RESTAURANT_SERVICE}/api/order/current/rider?riderId=${rider._id}&status=${normalizedStatus}`,
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+          },
+        },
+      );
+      if (normalizedStatus === "current") {
+        return res.json({
+          order: data,
+        });
+      }
+
+      return res.json({
+        orders: Array.isArray(data?.orders) ? data.orders : [],
+      });
+    } catch (error: any) {
+      if (error.response?.status === 404 && normalizedStatus === "current") {
+        return res.json({ order: null });
+      }
+
+      console.error("Fetch current order error:", error.message);
+
+      return res.status(error.response?.status || 500).json({
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+      });
+    }
+  },
+);
+
+export const updateOrderStatus = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Please Login",
+      });
+    }
+
+    const rider = await Rider.findOne({ userId: userId });
+
+    if (!rider) {
+      return res.status(404).json({
+        message: "Please Login",
+      });
+    }
+
+    const { orderId } = req.params;
+
+    try {
+      const { data } = await axios.put(
+        `${process.env.RESTAURANT_SERVICE}/api/order/update/status/rider`,
+        { orderId },
+        {
+          headers: {
+            "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+          },
+        },
+      );
+
+      res.json({
+        message: data.message,
+      });
+    } catch (error: any) {
+      console.error("Fetch current order error:", error.message);
+
+      return res.status(error.response?.status || 500).json({
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
+      });
+    }
   },
 );
