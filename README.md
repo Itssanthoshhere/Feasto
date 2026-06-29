@@ -2,7 +2,17 @@
 
 A production-style, microservices-based food ordering and delivery platform with real-time tracking, multi-role dashboards, and dual payment gateways — built to mirror how modern apps like Swiggy and Zomato are architected.
 
-**Live Demo:** [getfeasto.vercel.app](https://getfeasto.vercel.app/) · **Repository:** [github.com/Itssanthoshhere/Feasto](https://github.com/Itssanthoshhere/Feasto)
+<div align="center">
+  <a href="https://getfeasto.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-brightgreen?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
+  </a>&nbsp;
+  <a href="https://santhosh-vs-portfolio.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/🌐%20Portfolio-black?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" />
+  </a>&nbsp;
+  <a href="https://github.com/Itssanthoshhere" target="_blank">
+    <img src="https://img.shields.io/badge/%20GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+</div>
 
 ---
 
