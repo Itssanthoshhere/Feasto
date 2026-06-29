@@ -1,4 +1,4 @@
-# 🍔 Feasto — Full-Stack Food Delivery Platform
+# 🛵 Feasto — Full-Stack Food Delivery Platform
 
 A production-style, microservices-based food ordering and delivery platform with real-time tracking, multi-role dashboards, and dual payment gateways — built to mirror how modern apps like Swiggy and Zomato are architected.
 
@@ -18,7 +18,7 @@ A production-style, microservices-based food ordering and delivery platform with
 
 ## 📋 Table of Contents
 
-- [🍔 Feasto — Full-Stack Food Delivery Platform](#-feasto--full-stack-food-delivery-platform)
+- [🛵 Feasto — Full-Stack Food Delivery Platform](#-feasto--full-stack-food-delivery-platform)
   - [📋 Table of Contents](#-table-of-contents)
   - [📖 About The Project](#-about-the-project)
   - [✨ Features](#-features)
