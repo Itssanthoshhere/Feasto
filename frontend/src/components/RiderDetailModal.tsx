@@ -90,6 +90,8 @@ const RiderDetailModal = ({
                 onClick={() => setShowPII(!showPII)}
                 className="absolute transition-colors top-4 right-4 text-slate-400 hover:text-slate-600"
                 title={showPII ? "Hide Details" : "Show Details"}
+                aria-label={showPII ? "Hide Details" : "Show Details"}
+                aria-pressed={showPII}
               >
                 {showPII ? <BiHide size={20} /> : <BiShow size={20} />}
               </button>
@@ -99,12 +101,20 @@ const RiderDetailModal = ({
                   Number
                 </div>
                 <p className="text-lg font-medium tracking-wider text-slate-900 pl-7">
-                  {showPII
-                    ? rider.aadhaarNumber || rider.aadharNumber
-                    : "•••• •••• " +
-                      String(
-                        rider.aadhaarNumber || rider.aadharNumber || "",
-                      ).slice(-4)}
+                  {rider.aadhaarNumber || rider.aadharNumber ? (
+                    showPII ? (
+                      rider.aadhaarNumber || rider.aadharNumber
+                    ) : (
+                      "•••• •••• " +
+                      String(rider.aadhaarNumber || rider.aadharNumber).slice(
+                        -4,
+                      )
+                    )
+                  ) : (
+                    <span className="text-sm font-normal text-slate-400 italic">
+                      Not provided
+                    </span>
+                  )}
                 </p>
               </div>
 
@@ -115,10 +125,17 @@ const RiderDetailModal = ({
                   <BiCar size={20} className="text-blue-500" /> Driving License
                 </div>
                 <p className="text-lg font-medium tracking-wider text-slate-900 pl-7">
-                  {showPII
-                    ? rider.drivingLicenseNumber
-                    : "••••••••" +
-                      String(rider.drivingLicenseNumber || "").slice(-4)}
+                  {rider.drivingLicenseNumber ? (
+                    showPII ? (
+                      rider.drivingLicenseNumber
+                    ) : (
+                      "••••••••" + String(rider.drivingLicenseNumber).slice(-4)
+                    )
+                  ) : (
+                    <span className="text-sm font-normal text-slate-400 italic">
+                      Not provided
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
