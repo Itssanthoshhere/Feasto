@@ -337,8 +337,8 @@ const OrderRow = ({
   const moreCount = order.items.length > 3 ? order.items.length - 3 : 0;
 
   return (
-    <button
-      className={`w-full text-left group rounded-xl border overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#FF5A1F] focus:ring-offset-2 ${
+    <div
+      className={`w-full text-left group rounded-xl border overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#FF5A1F] focus:ring-offset-2 ${
         isActive ? `${meta.border} bg-white` : "border-gray-100 bg-gray-50/50"
       }`}
       onClick={onClick}
@@ -450,6 +450,6 @@ const OrderRow = ({
           size={20}
         />
       </div>
-    </button>
+    </div>
   );
 };

@@ -237,23 +237,33 @@ export const reorder = TryCatch(async (req: AuthenticatedRequest, res) => {
   );
 
   if (itemsToAdd.length === 0) {
-    return res
-      .status(400)
-      .json({
-        message: "None of the items in this order are available right now.",
-      });
+    return res.status(400).json({
+      message: "None of the items in this order are available right now.",
+    });
   }
 
-  await Cart.deleteMany({ userId: req.user._id });
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const cartDocs = itemsToAdd.map((item: any) => ({
-    userId: req.user!._id,
-    restaurantId: order.restaurantId,
-    itemId: new mongoose.Types.ObjectId(item.itemId),
-    quantity: item.quantity,
-  }));
+  try {
+    await Cart.deleteMany({ userId: req.user._id }, { session });
 
-  await Cart.insertMany(cartDocs);
+    const cartDocs = itemsToAdd.map((item: any) => ({
+      userId: req.user!._id,
+      restaurantId: order.restaurantId,
+      itemId: new mongoose.Types.ObjectId(item.itemId),
+      quantity: item.quantity,
+    }));
 
-  return res.json({ message: "Cart updated for reorder" });
+    await Cart.insertMany(cartDocs, { session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.json({ message: "Cart updated for reorder" });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 });

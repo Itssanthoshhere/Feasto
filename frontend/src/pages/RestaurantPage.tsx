@@ -18,75 +18,59 @@ const RestaurantPage = () => {
   const [menuSearch, setMenuSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchRestaurant = async () => {
-    try {
-      const { data } = await axios.get(
-        `${restaurantService}/api/restaurant/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      );
-
-      setRestaurant(data || null);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMenuItems = async () => {
-    try {
-      const { data } = await axios.get(
-        `${restaurantService}/api/item/all/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      );
-
-      setMenuItems(data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const fetchPromotions = async () => {
-    try {
-      const { data } = await axios.get(
-        `${restaurantService}/api/promotion/active/${id}`,
-      );
-      setPromotions(data.promotions || []);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
+    let ignore = false;
+
     if (id) {
       setLoading(true);
       setRestaurant(null);
       setMenuItems([]);
       setPromotions([]);
       setMenuSearch("");
-      Promise.all([
-        fetchRestaurant(),
-        fetchMenuItems(),
-        fetchPromotions(),
-      ]).finally(() => {
-        // loading state handled internally by fetchRestaurant
-      });
+
+      const loadData = async () => {
+        try {
+          const [restRes, menuRes, promoRes] = await Promise.all([
+            axios.get(`${restaurantService}/api/restaurant/${id}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }),
+            axios.get(`${restaurantService}/api/item/all/${id}`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }),
+            axios.get(`${restaurantService}/api/promotion/active/${id}`),
+          ]);
+
+          if (!ignore) {
+            setRestaurant(restRes.data || null);
+            setMenuItems(menuRes.data || []);
+            setPromotions(promoRes.data.promotions || []);
+          }
+        } catch (error) {
+          console.log(error);
+        } finally {
+          if (!ignore) setLoading(false);
+        }
+      };
+
+      loadData();
     }
+    return () => {
+      ignore = true;
+    };
   }, [id]);
 
-  const filteredMenu = menuItems.filter(
-    (item) =>
-      item.name.toLowerCase().includes(menuSearch.toLowerCase()) ||
-      item.description.toLowerCase().includes(menuSearch.toLowerCase()),
-  );
+  const filteredMenu = menuItems.filter((item) => {
+    const search = menuSearch.toLowerCase();
+    const nameMatch = item.name.toLowerCase().includes(search);
+    const descMatch = item.description
+      ? item.description.toLowerCase().includes(search)
+      : false;
+    return nameMatch || descMatch;
+  });
 
   if (loading) {
     return (

@@ -155,22 +155,26 @@ const Home = () => {
             {/* Category Chips */}
             <div className="mt-8 overflow-x-auto no-scrollbar">
               <div className="flex justify-center gap-3 px-4 pb-2 min-w-max">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => {
-                      setSearchInput(cat);
-                      setSearchParams({ search: cat });
-                    }}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${
-                      search === cat
-                        ? "bg-[#FF5A1F] text-white shadow-md shadow-[#FF5A1F]/20 scale-105"
-                        : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+                {CATEGORIES.map((cat) => {
+                  const isActive = search.toLowerCase() === cat.toLowerCase();
+                  return (
+                    <button
+                      key={cat}
+                      aria-pressed={isActive}
+                      onClick={() => {
+                        setSearchInput(cat);
+                        setSearchParams({ search: cat });
+                      }}
+                      className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${
+                        isActive
+                          ? "bg-[#FF5A1F] text-white shadow-md shadow-[#FF5A1F]/20 scale-105"
+                          : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

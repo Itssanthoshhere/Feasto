@@ -59,8 +59,8 @@ export interface IPromotion {
   discountValue: number;
   isActive: boolean;
   minOrderValue: number;
-  expiresAt?: Date;
-  createdAt: Date;
+  expiresAt?: string;
+  createdAt: string;
 }
 
 export interface IMenuItem {

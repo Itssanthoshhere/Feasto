@@ -41,12 +41,9 @@ export const createPromotion = TryCatch(
       promo = await Promotion.create(createData);
     } catch (err: any) {
       if (err.code === 11000) {
-        return res
-          .status(409)
-          .json({
-            message:
-              "A promo with this code already exists for your restaurant",
-          });
+        return res.status(409).json({
+          message: "A promo with this code already exists for your restaurant",
+        });
       }
       throw err;
     }
@@ -188,7 +185,7 @@ export const getActivePromotions = TryCatch(async (req, res) => {
       { expiresAt: { $exists: false } },
       { expiresAt: { $gt: new Date() } },
     ],
-  }).select("-__v -createdAt -updatedAt");
+  }).select("-__v -updatedAt");
 
   return res.json({ promotions });
 });
