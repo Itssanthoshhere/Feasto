@@ -31,6 +31,9 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
   );
   const [mapAddress, setMapAddress] = useState("");
   const [isOpen, setIsOpen] = useState(restaurant.isOpen);
+  const [kitchenLoad, setKitchenLoad] = useState<
+    "normal" | "busy" | "very_busy"
+  >(restaurant.kitchenLoad || "normal");
   const [loading, setLoading] = useState(false);
 
   const { setIsAuth, setUser } = useAppData();
@@ -58,6 +61,24 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
       } else {
         toast.error("Failed to update status");
       }
+    }
+  };
+
+  const updateKitchenLoad = async (load: "normal" | "busy" | "very_busy") => {
+    try {
+      const { data } = await axios.put(
+        `${restaurantService}/api/restaurant/kitchen-load`,
+        { kitchenLoad: load },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      setKitchenLoad(load);
+      toast.success(data.message);
+    } catch (error) {
+      toast.error("Failed to update kitchen load");
     }
   };
 
@@ -138,15 +159,15 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
 
   return (
     <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col sm:flex-row gap-6">
-      <div className="relative h-24 w-24 sm:h-32 sm:w-32 shrink-0 overflow-hidden rounded-2xl shadow-sm">
+      <div className="relative w-24 h-24 overflow-hidden shadow-sm sm:h-32 sm:w-32 shrink-0 rounded-2xl">
         {restaurant.image ? (
           <img
             src={restaurant.image}
             alt=""
-            className="h-full w-full object-cover"
+            className="object-cover w-full h-full"
           />
         ) : (
-          <div className="h-full w-full bg-slate-100 flex items-center justify-center text-slate-400">
+          <div className="flex items-center justify-center w-full h-full bg-slate-100 text-slate-400">
             <span className="text-3xl">🍽️</span>
           </div>
         )}
@@ -159,7 +180,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
         )}
       </div>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-col flex-1">
         <div className="flex items-start justify-between">
           <div className="w-full">
             {editMode ? (
@@ -170,7 +191,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
                 placeholder="Restaurant Name"
               />
             ) : (
-              <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">
                 {restaurant.name}
               </h2>
             )}
@@ -223,7 +244,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
               className="w-full text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#FF5A1F] transition-colors resize-none h-24"
             />
           ) : (
-            <p className="text-sm font-medium text-slate-500 max-w-2xl line-clamp-2">
+            <p className="max-w-2xl text-sm font-medium text-slate-500 line-clamp-2">
               {restaurant.description || "No description provided."}
             </p>
           )}
@@ -236,7 +257,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
               <label className="block text-sm font-bold text-slate-700">
                 Location Details
               </label>
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+              <div className="flex items-center gap-1 p-1 rounded-lg bg-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsManualLocation(false)}
@@ -271,7 +292,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
                 className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FF5A1F] focus:ring-4 focus:ring-[#FF5A1F]/10"
               />
             ) : (
-              <div className="relative h-52 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+              <div className="relative w-full overflow-hidden border h-52 rounded-2xl border-slate-200 bg-slate-100">
                 <MapSelector
                   latitude={mapLat}
                   longitude={mapLng}
@@ -287,8 +308,8 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
           </div>
         )}
 
-        <div className="mt-auto pt-5 flex flex-wrap items-center justify-between gap-4 border-t border-slate-50">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-5 mt-auto border-t border-slate-50">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
                 isOpen
@@ -304,6 +325,24 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
             {restaurant.isVerified && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
                 ✓ Verified
+              </span>
+            )}
+            {isSeller && (
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                  kitchenLoad === "normal"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : kitchenLoad === "busy"
+                      ? "bg-amber-50 text-amber-700"
+                      : "bg-red-50 text-red-700"
+                }`}
+              >
+                🍳
+                {kitchenLoad === "normal"
+                  ? " Normal"
+                  : kitchenLoad === "busy"
+                    ? " Busy"
+                    : " Very Busy"}
               </span>
             )}
           </div>
@@ -334,9 +373,26 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
             )}
 
             {isSeller && (
+              <select
+                value={kitchenLoad}
+                onChange={(e) =>
+                  updateKitchenLoad(
+                    e.target.value as "normal" | "busy" | "very_busy",
+                  )
+                }
+                className="px-3 py-2 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-700 outline-none focus:border-[#FF5A1F] transition-colors cursor-pointer"
+                title="Set Kitchen Load"
+              >
+                <option value="normal">🟢 Kitchen: Normal</option>
+                <option value="busy">🟡 Kitchen: Busy</option>
+                <option value="very_busy">🔴 Kitchen: Very Busy</option>
+              </select>
+            )}
+
+            {isSeller && (
               <button
                 onClick={logoutHandler}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors"
+                className="px-4 py-2 text-sm font-bold transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl"
               >
                 Logout
               </button>

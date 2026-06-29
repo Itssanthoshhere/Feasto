@@ -47,6 +47,7 @@ export interface IRestaurant {
     formattedAddress: string;
   };
   isOpen: boolean;
+  kitchenLoad?: "normal" | "busy" | "very_busy";
   createdAt: Date;
 }
 
@@ -106,14 +107,14 @@ export interface IOrder {
   };
 
   status:
-  | "placed"
-  | "accepted"
-  | "preparing"
-  | "ready_for_rider"
-  | "rider_assigned"
-  | "picked_up"
-  | "delivered"
-  | "cancelled";
+    | "placed"
+    | "accepted"
+    | "preparing"
+    | "ready_for_rider"
+    | "rider_assigned"
+    | "picked_up"
+    | "delivered"
+    | "cancelled";
 
   paymentMethod: "razorpay" | "stripe";
   paymentStatus: "pending" | "paid" | "failed";
