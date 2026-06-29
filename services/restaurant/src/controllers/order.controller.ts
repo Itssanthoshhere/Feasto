@@ -49,9 +49,9 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return +(R * c).toFixed(2);
@@ -664,3 +664,91 @@ export const updateOrderStatusRider = TryCatch(async (req, res) => {
     });
   }
 });
+
+export const getRestaurantAnalytics = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    const restaurantId = req.params.restaurantId as string;
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ message: "Invalid Restaurant ID" });
+    }
+
+    const restIdObj = new mongoose.Types.ObjectId(restaurantId);
+
+    // Calculate totals for paid orders
+    const stats = await Order.aggregate([
+      {
+        $match: {
+          restaurantId: restIdObj,
+          paymentStatus: "paid",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalAmount" }, // Gross revenue
+          netEarnings: { $sum: "$subtotal" }, // Net earnings
+          totalOrders: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const analytics = stats[0] || {
+      totalRevenue: 0,
+      netEarnings: 0,
+      totalOrders: 0,
+    };
+    const averageOrderValue =
+      analytics.totalOrders > 0
+        ? Math.round(analytics.totalRevenue / analytics.totalOrders)
+        : 0;
+
+    // Get past 7 days sales data for chart
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const dailySales = await Order.aggregate([
+      {
+        $match: {
+          restaurantId: restIdObj,
+          paymentStatus: "paid",
+          createdAt: { $gte: sevenDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          revenue: { $sum: "$totalAmount" },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Fill missing days with 0
+    const chartData = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      const dateStr = d.toISOString().split("T")[0];
+      const found = dailySales.find((s) => s._id === dateStr);
+      chartData.push({
+        date: dateStr,
+        day: d.toLocaleDateString("en-US", { weekday: "short" }),
+        revenue: found ? found.revenue : 0,
+        orders: found ? found.orders : 0,
+      });
+    }
+
+    return res.json({
+      totalRevenue: analytics.totalRevenue,
+      netEarnings: analytics.netEarnings,
+      totalOrders: analytics.totalOrders,
+      averageOrderValue,
+      chartData,
+    });
+  },
+);

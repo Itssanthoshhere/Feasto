@@ -10,10 +10,17 @@ import {
   getMyOrders,
   updateOrderStatus,
   updateOrderStatusRider,
+  getRestaurantAnalytics,
 } from "../controllers/order.controller.js";
 
 const router = express.Router();
 
+router.get(
+  "/analytics/:restaurantId",
+  isAuth,
+  isSeller,
+  getRestaurantAnalytics,
+);
 router.get("/myorder", isAuth, getMyOrders);
 router.get("/:id", isAuth, fetchSingleOrder);
 router.post("/new", isAuth, createOrder);

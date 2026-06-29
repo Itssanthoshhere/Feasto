@@ -8,6 +8,7 @@ import { useAppData } from "../context/AppContext";
 import MenuItems from "../components/MenuItems";
 import AddMenuItem from "../components/AddMenuItem";
 import RestaurantOrders from "../components/RestaurantOrders";
+import RestaurantAnalytics from "../components/RestaurantAnalytics";
 
 type SellerTab = "menu" | "add-item" | "sales";
 
@@ -132,18 +133,7 @@ const Restaurant = () => {
               <AddMenuItem onItemAdded={() => fetchMenuItems(restaurant._id)} />
             )}
             {tab === "sales" && (
-              <div className="flex flex-col items-center justify-center text-center py-16">
-                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h2 className="text-lg font-bold text-slate-800">
-                  Sales & Analytics
-                </h2>
-                <p className="text-sm font-medium text-slate-500 mt-2 max-w-sm">
-                  Track your revenue and orders here once your restaurant is
-                  live.
-                </p>
-              </div>
+              <RestaurantAnalytics restaurantId={restaurant._id} />
             )}
           </div>
         </div>
