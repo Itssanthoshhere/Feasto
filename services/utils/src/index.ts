@@ -12,16 +12,12 @@ dotenv.config();
 const app = express();
 
 app.use(helmet());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:5173"];
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173", // Frontend (Vite)
-      "http://localhost:8001", // Auth service
-      "http://localhost:8002", // Restaurant service
-      "http://localhost:8003", // Utils service
-      "http://localhost:8004", // Realtime service
-      "http://localhost:8005", // Rider service
-    ],
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
