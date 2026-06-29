@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
 import { BiCheckShield, BiShieldX, BiBell, BiHistory } from "react-icons/bi";
 
-const iconMap: Record<string, JSX.Element> = {
+const iconMap: Record<string, ReactNode> = {
   "Verified Restaurant": <BiCheckShield className="text-green-500" size={20} />,
   "Verified Rider": <BiCheckShield className="text-green-500" size={20} />,
   "Unverified Restaurant": <BiShieldX className="text-red-500" size={20} />,
@@ -21,7 +22,7 @@ const AdminActivityLog = ({ logs }: { logs: any[] }) => {
           </p>
         ) : (
           <div className="space-y-0">
-            {logs.map((log, i) => (
+            {logs.map((log) => (
               <div
                 key={log._id}
                 className="flex items-start gap-4 py-4 border-b border-slate-100 last:border-0 dark:border-slate-700"

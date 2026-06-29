@@ -47,8 +47,8 @@ const AdminRevenueChart = ({
               boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
               fontSize: "13px",
             }}
-            formatter={(value: number) => [`₹${value}`, "Revenue"]}
-            labelFormatter={(label: string) => `Date: ${label}`}
+            formatter={(value: any) => [`₹${value}`, "Revenue"]}
+            labelFormatter={(label: any) => `Date: ${label}`}
           />
           <Area
             type="monotone"

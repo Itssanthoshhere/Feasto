@@ -316,7 +316,7 @@ export const getNotifications = TryCatch(async (req, res) => {
 
 export const dismissNotification = TryCatch(async (req, res) => {
   const { id } = req.params;
-  if (!ObjectId.isValid(id))
+  if (typeof id !== "string" || !ObjectId.isValid(id))
     return res.status(400).json({ message: "Invalid id" });
   await (
     await getNotificationCollection()

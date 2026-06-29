@@ -5,6 +5,13 @@ import cors from "cors";
 
 dotenv.config();
 
+if (!process.env.PORT || !process.env.JWT_SECRET) {
+  console.error(
+    "FATAL ERROR: PORT and JWT_SECRET environment variables are required.",
+  );
+  process.exit(1);
+}
+
 const app = express();
 
 app.use(cors());

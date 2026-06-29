@@ -66,16 +66,7 @@ const Admin = () => {
 
   const fetchData = async () => {
     try {
-      const [
-        resRestaurants,
-        resRiders,
-        resOrders,
-        resAnalytics,
-        resChart,
-        resHistory,
-        resUsers,
-        resLogs,
-      ] = await Promise.all([
+      const results = await Promise.allSettled([
         axios.get(`${adminService}/api/v1/admin/restaurant/all`, authHeaders),
         axios.get(`${adminService}/api/v1/admin/rider/all`, authHeaders),
         axios.get(`${adminService}/api/v1/admin/orders/active`, authHeaders),
@@ -86,14 +77,26 @@ const Admin = () => {
         axios.get(`${adminService}/api/v1/admin/activity-log`, authHeaders),
       ]);
 
-      setRestaurant(resRestaurants.data.restaurants);
-      setRiders(resRiders.data.riders);
-      setActiveOrders(resOrders.data.orders);
-      setAnalytics(resAnalytics.data);
-      setRevenueChart(resChart.data.chart);
-      setOrderHistory(resHistory.data.orders);
-      setUsers(resUsers.data.users);
-      setActivityLogs(resLogs.data.logs);
+      if (results[0].status === "fulfilled")
+        setRestaurant(results[0].value.data.restaurants);
+      if (results[1].status === "fulfilled")
+        setRiders(results[1].value.data.riders);
+      if (results[2].status === "fulfilled")
+        setActiveOrders(results[2].value.data.orders);
+      if (results[3].status === "fulfilled")
+        setAnalytics(results[3].value.data);
+      if (results[4].status === "fulfilled")
+        setRevenueChart(results[4].value.data.chart);
+      if (results[5].status === "fulfilled")
+        setOrderHistory(results[5].value.data.orders);
+      if (results[6].status === "fulfilled")
+        setUsers(results[6].value.data.users);
+      if (results[7].status === "fulfilled")
+        setActivityLogs(results[7].value.data.logs);
+
+      if (results.some((r) => r.status === "rejected")) {
+        toast.error("Some data failed to load");
+      }
     } catch (error) {
       console.log(error);
       toast.error("Failed to load admin data");
@@ -130,10 +133,10 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
-          <p className="text-slate-500 font-medium tracking-wide">
+          <div className="w-10 h-10 border-4 border-orange-500 rounded-full animate-spin border-t-transparent" />
+          <p className="font-medium tracking-wide text-slate-500">
             Loading Admin Panel...
           </p>
         </div>
@@ -182,14 +185,14 @@ const Admin = () => {
     <div
       className={`min-h-screen p-6 md:p-10 transition-colors ${darkMode ? "dark bg-slate-900" : "bg-slate-50"}`}
     >
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto space-y-8 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-6 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight md:text-3xl text-slate-900 dark:text-white">
               Admin Dashboard
             </h1>
-            <p className="text-sm text-slate-500 mt-1 dark:text-slate-400">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Manage Feasto platform overview, users, and orders.
             </p>
           </div>
@@ -239,11 +242,11 @@ const Admin = () => {
           <div className="space-y-8">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="bg-white p-6 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center gap-4 dark:bg-slate-800 dark:border-slate-700">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-100 shrink-0">
                   <BiTrendingUp size={28} className="text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-slate-500 text-sm font-semibold dark:text-slate-400">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                     Total Revenue
                   </p>
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -253,11 +256,11 @@ const Admin = () => {
               </div>
 
               <div className="bg-white p-6 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center gap-4 dark:bg-slate-800 dark:border-slate-700">
-                <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-center bg-blue-100 w-14 h-14 rounded-2xl shrink-0">
                   <BiPackage size={28} className="text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-slate-500 text-sm font-semibold dark:text-slate-400">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                     Live Orders
                   </p>
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -267,11 +270,11 @@ const Admin = () => {
               </div>
 
               <div className="bg-white p-6 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center gap-4 dark:bg-slate-800 dark:border-slate-700">
-                <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-center bg-orange-100 w-14 h-14 rounded-2xl shrink-0">
                   <BiStore size={28} className="text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-slate-500 text-sm font-semibold dark:text-slate-400">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                     Verified Restaurants
                   </p>
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -281,11 +284,11 @@ const Admin = () => {
               </div>
 
               <div className="bg-white p-6 rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 flex items-center gap-4 dark:bg-slate-800 dark:border-slate-700">
-                <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center shrink-0">
+                <div className="flex items-center justify-center bg-purple-100 w-14 h-14 rounded-2xl shrink-0">
                   <BiUserCheck size={28} className="text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-slate-500 text-sm font-semibold dark:text-slate-400">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                     Online Riders
                   </p>
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -312,8 +315,8 @@ const Admin = () => {
             </div>
             <div className="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden dark:bg-slate-800 dark:border-slate-700">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-                  <thead className="bg-slate-50 text-slate-500 uppercase font-semibold text-xs tracking-wider dark:bg-slate-700 dark:text-slate-400">
+                <table className="w-full text-sm text-left text-slate-600 dark:text-slate-300">
+                  <thead className="text-xs font-semibold tracking-wider uppercase bg-slate-50 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
                     <tr>
                       <th className="px-6 py-4">Order ID</th>
                       <th className="px-6 py-4">Restaurant</th>
@@ -336,7 +339,7 @@ const Admin = () => {
                       activeOrders.map((order) => (
                         <tr
                           key={order._id}
-                          className="hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-700/50"
+                          className="transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-700/50"
                         >
                           <td className="px-6 py-4 font-mono text-xs text-slate-500 dark:text-slate-400">
                             {order._id.slice(-8)}
@@ -352,7 +355,7 @@ const Admin = () => {
                           <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
                             {order.riderName || "Not assigned"}
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-slate-900 dark:text-white">
+                          <td className="px-6 py-4 font-bold text-right text-slate-900 dark:text-white">
                             ₹{order.totalAmount}
                           </td>
                         </tr>
@@ -383,10 +386,10 @@ const Admin = () => {
         {/* Restaurants & Riders Tabs (With Search & Filters) */}
         {(tab === "restaurant" || tab === "rider") && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <div className="relative flex-1">
                 <BiSearch
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute -translate-y-1/2 left-4 top-1/2 text-slate-400"
                   size={20}
                 />
                 <input
@@ -394,7 +397,7 @@ const Admin = () => {
                   placeholder={`Search ${tab}s...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-slate-200 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  className="w-full py-3 pr-4 transition-all bg-white border shadow-sm outline-none pl-11 rounded-2xl border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                 />
               </div>
               <div className="flex gap-2 p-1.5 bg-slate-200/50 rounded-2xl w-fit dark:bg-slate-800">
@@ -428,8 +431,8 @@ const Admin = () => {
             {tab === "restaurant" && (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredRestaurants.length === 0 ? (
-                  <div className="col-span-full py-20 text-center">
-                    <p className="text-slate-400 text-lg">
+                  <div className="py-20 text-center col-span-full">
+                    <p className="text-lg text-slate-400">
                       No restaurants found matching your criteria.
                     </p>
                   </div>
@@ -448,8 +451,8 @@ const Admin = () => {
             {tab === "rider" && (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredRiders.length === 0 ? (
-                  <div className="col-span-full py-20 text-center">
-                    <p className="text-slate-400 text-lg">
+                  <div className="py-20 text-center col-span-full">
+                    <p className="text-lg text-slate-400">
                       No riders found matching your criteria.
                     </p>
                   </div>
