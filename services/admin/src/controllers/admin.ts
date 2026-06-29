@@ -14,6 +14,7 @@ const logActivity = async (
   action: string,
   targetType: string,
   targetId: string,
+  details?: string,
 ) => {
   try {
     const col = await getActivityLogCollection();
@@ -21,6 +22,7 @@ const logActivity = async (
       action,
       targetType,
       targetId,
+      details,
       createdAt: new Date(),
     });
   } catch (e) {
@@ -306,7 +308,7 @@ export const sendNotification = TryCatch(async (req, res) => {
 
   await (await getNotificationCollection()).insertOne(notification);
 
-  logActivity(`Sent notification to ${target}`, "notification", "");
+  logActivity(`Sent notification to ${target}`, "notification", "", message);
 
   res.json({ message: "Notification sent successfully" });
 });

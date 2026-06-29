@@ -95,6 +95,8 @@ export interface IOrder {
   subtotal: number;
   deliveryFee: number;
   platformFee: number;
+  discountAmount?: number;
+  promoCode?: string;
   totalAmount: number;
 
   addressId: string;
@@ -120,6 +122,7 @@ export interface IOrder {
   paymentStatus: "pending" | "paid" | "failed";
 
   expiresAt: Date;
+  estimatedDeliveryTime?: Date;
 
   createdAt: Date;
   updatedAt: Date;

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
-import { BiCheckShield, BiShieldX, BiBell, BiHistory } from "react-icons/bi";
+import { BiCheckShield, BiShieldX, BiBell, BiHistory, BiChevronDown } from "react-icons/bi";
 
 const iconMap: Record<string, ReactNode> = {
   "Verified Restaurant": <BiCheckShield className="text-green-500" size={20} />,
@@ -9,6 +10,8 @@ const iconMap: Record<string, ReactNode> = {
 };
 
 const AdminActivityLog = ({ logs }: { logs: any[] }) => {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -25,27 +28,44 @@ const AdminActivityLog = ({ logs }: { logs: any[] }) => {
             {logs.map((log) => (
               <div
                 key={log._id}
-                className="flex items-start gap-4 py-4 border-b border-slate-100 last:border-0 dark:border-slate-700"
+                className="flex flex-col py-4 border-b border-slate-100 last:border-0 dark:border-slate-700"
               >
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 dark:bg-slate-700">
-                  {iconMap[log.action] || (
-                    <BiBell className="text-orange-500" size={20} />
-                  )}
+                <div 
+                  className={`flex items-start gap-4 ${log.details ? "cursor-pointer group" : ""}`}
+                  onClick={() => log.details && setExpandedId(expandedId === log._id ? null : log._id)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 dark:bg-slate-700">
+                    {iconMap[log.action] || (
+                      <BiBell className="text-orange-500" size={20} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      {log.action}
+                      {log.details && (
+                        <BiChevronDown 
+                          size={16} 
+                          className={`text-slate-400 transition-transform ${expandedId === log._id ? "rotate-180" : ""}`} 
+                        />
+                      )}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {log.targetType}
+                      {log.targetId ? ` • ID: ${log.targetId.slice(-8)}` : ""}
+                    </p>
+                  </div>
+                  <span className="text-xs text-slate-400 shrink-0 dark:text-slate-500">
+                    {log.createdAt
+                      ? new Date(log.createdAt).toLocaleString()
+                      : "—"}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">
-                    {log.action}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {log.targetType} • ID:{" "}
-                    {log.targetId ? log.targetId.slice(-8) : "—"}
-                  </p>
-                </div>
-                <span className="text-xs text-slate-400 shrink-0 dark:text-slate-500">
-                  {log.createdAt
-                    ? new Date(log.createdAt).toLocaleString()
-                    : "—"}
-                </span>
+                
+                {log.details && expandedId === log._id && (
+                  <div className="mt-3 ml-14 rounded-xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-700/50 dark:text-slate-300 border border-slate-100 dark:border-slate-600">
+                    {log.details}
+                  </div>
+                )}
               </div>
             ))}
           </div>

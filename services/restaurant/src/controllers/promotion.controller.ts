@@ -138,9 +138,10 @@ export const validatePromoCode = TryCatch(async (req, res) => {
 
   return res.json({
     valid: true,
-    discount,
+    discountAmount: discount,
     discountType: promo.discountType,
     discountValue: promo.discountValue,
+    code: promo.code,
     message: `₹${discount} discount applied!`,
   });
 });

@@ -15,6 +15,7 @@ import {
 } from "react-icons/bi";
 import { VscLoading } from "react-icons/vsc";
 import { TbShoppingCart } from "react-icons/tb";
+import { FiPercent } from "react-icons/fi";
 
 interface Address {
   _id: string;
@@ -34,6 +35,13 @@ const Checkout = () => {
   const [loadingRazorpay, setLoadingRazorpay] = useState(false);
   const [loadingStripe, setLoadingStripe] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
+
+  // Promo Code State
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [promoError, setPromoError] = useState("");
 
   const navigate = useNavigate();
 
@@ -104,7 +112,47 @@ const Checkout = () => {
   const restaurant = cart[0].restaurantId as IRestaurant;
   const deliveryFee = subTotal < 250 ? 49 : 0;
   const platformFee = 7;
-  const grandTotal = subTotal + deliveryFee + platformFee;
+  const grandTotal = subTotal + deliveryFee + platformFee - discountAmount;
+
+  const validatePromoCode = async () => {
+    if (!promoCodeInput.trim()) return;
+    
+    setIsValidatingPromo(true);
+    setPromoError("");
+    
+    try {
+      const { data } = await axios.post(
+        `${restaurantService}/api/promotion/validate`,
+        {
+          code: promoCodeInput.trim(),
+          restaurantId: restaurant._id,
+          orderTotal: subTotal,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      
+      setAppliedPromo(data.code);
+      setDiscountAmount(data.discountAmount);
+      setPromoCodeInput("");
+      toast.success("Promo code applied!");
+    } catch (error: any) {
+      setPromoError(error.response?.data?.message || "Invalid promo code");
+      setAppliedPromo(null);
+      setDiscountAmount(0);
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setAppliedPromo(null);
+    setDiscountAmount(0);
+    setPromoError("");
+  };
 
   const createOrder = async (paymentMethod: "razorpay" | "stripe") => {
     if (!selectedAddressId) return null;
@@ -117,6 +165,7 @@ const Checkout = () => {
           paymentMethod,
           addressId: selectedAddressId,
           distance: 0,
+          promoCode: appliedPromo,
         },
         {
           headers: {
@@ -481,6 +530,13 @@ const Checkout = () => {
                   <span>₹{platformFee}</span>
                 </div>
 
+                {discountAmount > 0 && (
+                  <div className="flex justify-between font-bold text-emerald-600">
+                    <span>Discount ({appliedPromo})</span>
+                    <span>-₹{discountAmount}</span>
+                  </div>
+                )}
+
                 {subTotal < 250 && (
                   <div className="rounded-xl bg-[#FF5A1F]/5 px-3 py-2 text-xs font-medium text-[#FF5A1F]">
                     Add items worth ₹{250 - subTotal} to get free delivery 🚀
@@ -495,6 +551,50 @@ const Checkout = () => {
                     ₹{grandTotal}
                   </span>
                 </div>
+              </div>
+
+              {/* Promo Code Section */}
+              <div className="mt-6 mb-4">
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <div className="flex items-center gap-2 text-emerald-700">
+                      <FiPercent />
+                      <span className="text-sm font-bold tracking-wide">
+                        {appliedPromo} APPLIED
+                      </span>
+                    </div>
+                    <button
+                      onClick={removePromoCode}
+                      className="text-xs font-bold text-emerald-700 underline hover:text-emerald-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCodeInput}
+                        onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                        placeholder="Enter promo code"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold uppercase outline-none focus:border-[#FF5A1F] focus:ring-2 focus:ring-[#FF5A1F]/10"
+                      />
+                      <button
+                        onClick={validatePromoCode}
+                        disabled={isValidatingPromo || !promoCodeInput.trim()}
+                        className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-slate-700 disabled:bg-slate-300"
+                      >
+                        {isValidatingPromo ? <VscLoading className="animate-spin" /> : "Apply"}
+                      </button>
+                    </div>
+                    {promoError && (
+                      <p className="mt-1.5 px-1 text-xs font-bold text-red-500">
+                        {promoError}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Pay Button */}
