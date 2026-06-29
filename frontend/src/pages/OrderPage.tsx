@@ -262,6 +262,18 @@ const OrderPage = () => {
                 </div>
               </div>
             )}
+            
+            {!isCancelled && order.estimatedDeliveryTime && order.status !== "delivered" && (
+              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-orange-50 px-4 py-2 text-orange-600 border border-orange-100">
+                <span className="text-xl">⏱️</span>
+                <span className="text-sm font-bold">
+                  Arriving by {new Date(order.estimatedDeliveryTime).toLocaleTimeString("en-IN", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -359,6 +371,12 @@ const OrderPage = () => {
                   ₹{order.platformFee}
                 </span>
               </div>
+              {order.discountAmount ? (
+                <div className="flex justify-between font-bold text-emerald-600">
+                  <span>Discount ({order.promoCode})</span>
+                  <span>-₹{order.discountAmount}</span>
+                </div>
+              ) : null}
             </div>
           </div>
 

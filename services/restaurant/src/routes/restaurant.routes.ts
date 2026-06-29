@@ -8,6 +8,7 @@ import {
   updateRestaurant,
   updateStatusRestaurant,
   getNotifications,
+  updateKitchenLoad,
 } from "../controllers/restaurant.controllers.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -19,6 +20,7 @@ router.put("/status", isAuth, isSeller, updateStatusRestaurant);
 router.put("/edit", isAuth, isSeller, updateRestaurant);
 router.get("/all", isAuth, getNearbyRestaurant);
 router.get("/notifications", isAuth, isSeller, getNotifications);
+router.put("/kitchen-load", isAuth, isSeller, updateKitchenLoad);
 router.get("/:id", isAuth, fetchSingleRestaurant);
 
 export default router;

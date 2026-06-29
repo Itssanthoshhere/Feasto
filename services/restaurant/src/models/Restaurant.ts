@@ -17,6 +17,7 @@ export interface IRestaurant extends Document {
   };
 
   isOpen: boolean;
+  kitchenLoad: "normal" | "busy" | "very_busy";
   createdAt: Date;
 }
 
@@ -62,6 +63,11 @@ const schema = new Schema<IRestaurant>(
     isOpen: {
       type: Boolean,
       default: false,
+    },
+    kitchenLoad: {
+      type: String,
+      enum: ["normal", "busy", "very_busy"],
+      default: "normal",
     },
     rating: {
       type: Number,

@@ -6,6 +6,7 @@ import Cart from "../models/cart.js";
 import { IMenuItem } from "../models/MenuItems.js";
 import Order, { IOrder } from "../models/Order.js";
 import Restaurant, { IRestaurant } from "../models/Restaurant.js";
+import Promotion from "../models/Promotion.js";
 import axios from "axios";
 import { publishEvent } from "../config/order.publisher.js";
 
@@ -17,7 +18,7 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
     });
   }
 
-  const { paymentMethod, addressId } = req.body;
+  const { paymentMethod, addressId, promoCode } = req.body;
 
   if (!addressId) {
     return res.status(400).json({
@@ -130,11 +131,48 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
 
   const deliveryFee = subtotal < 250 ? 49 : 0;
   const platformFee = 7;
-  const totalAmount = subtotal + deliveryFee + platformFee;
+  let totalAmount = subtotal + deliveryFee + platformFee;
+  let discountAmount = 0;
+
+  if (promoCode) {
+    const promo = await Promotion.findOne({
+      restaurantId: restaurantId,
+      code: String(promoCode).toUpperCase().trim(),
+      isActive: true,
+    });
+
+    if (!promo) {
+      return res.status(400).json({ message: "Invalid or expired promo code" });
+    }
+
+    if (promo.expiresAt && promo.expiresAt < new Date()) {
+      return res.status(400).json({ message: "This promo code has expired" });
+    }
+
+    if (promo.minOrderValue > 0 && subtotal < promo.minOrderValue) {
+      return res.status(400).json({
+        message: `Minimum order of ₹${promo.minOrderValue} required for this code`,
+      });
+    }
+
+    const rawDiscount =
+      promo.discountType === "percent"
+        ? Math.round((subtotal * promo.discountValue) / 100)
+        : promo.discountValue;
+    discountAmount = Math.max(0, Math.min(rawDiscount, subtotal));
+    totalAmount -= discountAmount;
+  }
 
   const riderAmount = Math.ceil(distance) * 17;
 
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  let prepTimeMins = 15;
+  if (restaurant.kitchenLoad === "busy") prepTimeMins = 30;
+  else if (restaurant.kitchenLoad === "very_busy") prepTimeMins = 45;
+
+  const travelTimeMins = Math.ceil(distance * 3); // 3 mins per km
+  const estimatedDeliveryTime = new Date(Date.now() + (prepTimeMins + travelTimeMins) * 60000);
 
   const [longitude, latitude] = address.location.coordinates;
 
@@ -142,35 +180,38 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
   session.startTransaction();
 
   try {
-    const order = await Order.create(
-      [
-        {
-          userId: user._id,
-          restaurantId: restaurantId,
-          restaurantName: restaurant.name,
-          riderId: null,
-          distance,
-          riderAmount,
-          items: orderItems,
-          subtotal,
-          deliveryFee,
-          platformFee,
-          totalAmount,
-          addressId: address._id,
-          deliveryAddress: {
-            formattedAddress: address.formattedAddress,
-            mobile: address.mobile,
-            latitude,
-            longitude,
-          },
-          paymentMethod,
-          paymentStatus: "pending",
-          status: "placed",
-          expiresAt,
-        },
-      ],
-      { session },
-    );
+    const orderData: any = {
+      userId: user._id,
+      restaurantId: restaurantId,
+      restaurantName: restaurant.name,
+      riderId: null,
+      distance,
+      riderAmount,
+      items: orderItems,
+      subtotal,
+      deliveryFee,
+      platformFee,
+      discountAmount,
+      totalAmount,
+      addressId: address._id,
+      deliveryAddress: {
+        formattedAddress: address.formattedAddress,
+        mobile: address.mobile,
+        latitude,
+        longitude,
+      },
+      paymentMethod,
+      paymentStatus: "pending",
+      status: "placed",
+      expiresAt,
+      estimatedDeliveryTime,
+    };
+
+    if (promoCode) {
+      orderData.promoCode = String(promoCode).toUpperCase().trim();
+    }
+
+    const order = await Order.create([orderData], { session });
 
     await session.commitTransaction();
     session.endSession();

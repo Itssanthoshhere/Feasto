@@ -9,6 +9,7 @@ import cartRoutes from "./routes/cart.routes.js";
 import addressRoutes from "./routes/address.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
+import promotionRoutes from "./routes/promotion.routes.js";
 import { connectRabbitMQ } from "./config/rabbitmq.js";
 import { startPaymentConsumer } from "./config/payment.consumer.js";
 
@@ -32,6 +33,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/review", reviewRoutes);
+app.use("/api/promotion", promotionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Restaurant service is running on port ${PORT}`);

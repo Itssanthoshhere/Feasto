@@ -275,3 +275,34 @@ export const getNotifications = TryCatch(async (req, res) => {
     .limit(20);
   res.json({ notifications });
 });
+
+export const updateKitchenLoad = TryCatch(
+  async (req: AuthenticatedRequest, res) => {
+    if (!req.user) {
+      return res.status(403).json({ message: "Please Login" });
+    }
+
+    const { kitchenLoad } = req.body;
+
+    if (!["normal", "busy", "very_busy"].includes(kitchenLoad)) {
+      return res.status(400).json({
+        message: "kitchenLoad must be 'normal', 'busy', or 'very_busy'",
+      });
+    }
+
+    const restaurant = await Restaurant.findOneAndUpdate(
+      { ownerId: req.user._id },
+      { kitchenLoad },
+      { returnDocument: "after" },
+    );
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    return res.json({
+      message: "Kitchen load updated",
+      restaurant,
+    });
+  },
+);

@@ -9,8 +9,10 @@ import MenuItems from "../components/MenuItems";
 import AddMenuItem from "../components/AddMenuItem";
 import RestaurantOrders from "../components/RestaurantOrders";
 import RestaurantAnalytics from "../components/RestaurantAnalytics";
+import RestaurantPromotions from "../components/RestaurantPromotions";
+import ReviewList from "../components/ReviewList";
 
-type SellerTab = "menu" | "add-item" | "sales";
+type SellerTab = "menu" | "add-item" | "promotions" | "sales" | "reviews";
 
 const Restaurant = () => {
   const { setUser } = useAppData();
@@ -105,7 +107,9 @@ const Restaurant = () => {
             {[
               { key: "menu", label: "Menu Items" },
               { key: "add-item", label: "Add Item" },
+              { key: "promotions", label: "Promotions" },
               { key: "sales", label: "Sales" },
+              { key: "reviews", label: "Reviews" },
             ].map((t) => (
               <button
                 key={t.key}
@@ -132,9 +136,11 @@ const Restaurant = () => {
             {tab === "add-item" && (
               <AddMenuItem onItemAdded={() => fetchMenuItems(restaurant._id)} />
             )}
+            {tab === "promotions" && <RestaurantPromotions />}
             {tab === "sales" && (
               <RestaurantAnalytics restaurantId={restaurant._id} />
             )}
+            {tab === "reviews" && <ReviewList restaurantId={restaurant._id} />}
           </div>
         </div>
       </div>

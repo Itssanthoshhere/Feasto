@@ -21,6 +21,8 @@ export interface IOrder extends Document {
   subtotal: number;
   deliveryFee: number;
   platformFee: number;
+  discountAmount?: number;
+  promoCode?: string;
   totalAmount: number;
 
   addressId: mongoose.Types.ObjectId;
@@ -46,6 +48,7 @@ export interface IOrder extends Document {
   paymentStatus: "pending" | "paid" | "failed";
 
   expiresAt: Date;
+  estimatedDeliveryTime?: Date;
 
   createdAt: Date;
   updatedAt: Date;
@@ -108,6 +111,8 @@ const OrderSchema = new Schema<IOrder>(
     subtotal: { type: Number, required: true },
     deliveryFee: { type: Number, required: true },
     platformFee: { type: Number, required: true },
+    discountAmount: { type: Number, default: 0 },
+    promoCode: { type: String, default: null },
     totalAmount: { type: Number, required: true },
 
     addressId: {
@@ -159,6 +164,9 @@ const OrderSchema = new Schema<IOrder>(
         expireAfterSeconds: 0,
         partialFilterExpression: { paymentStatus: "pending" }
       },
+    },
+    estimatedDeliveryTime: {
+      type: Date,
     },
   },
   {
