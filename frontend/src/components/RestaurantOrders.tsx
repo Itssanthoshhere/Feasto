@@ -6,6 +6,7 @@ import axios from "axios";
 import { restaurantService } from "../main";
 import OrderCard from "./OrderCard";
 import toast from "react-hot-toast";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { ACTIVE_STATUSES } from "../config/orderConstants";
 
 type FilterKey =
@@ -219,6 +220,11 @@ const RestaurantOrders = ({ restaurantId }: { restaurantId: string }) => {
           </div>
 
           <div className="flex items-center gap-3">
+            <NotificationDropdown
+              fetchUrl={`${restaurantService}/api/restaurant/notifications`}
+              storageKey="lastViewedRestaurantNotificationId"
+            />
+
             {/* Live indicator */}
             <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5">
               <span className="relative flex h-2 w-2">

@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from "../middlewares/isAuth.js";
 import TryCatch from "../middlewares/trycatch.js";
 import Restaurant from "../models/Restaurant.js";
 import jwt from "jsonwebtoken";
+import { Notification } from "../models/Notification.js";
 
 export const addRestaurant = TryCatch(
   async (req: AuthenticatedRequest, res) => {
@@ -266,4 +267,11 @@ export const fetchSingleRestaurant = TryCatch(async (req, res) => {
   }
 
   res.json(restaurant);
+});
+
+export const getNotifications = TryCatch(async (req, res) => {
+  const notifications = await Notification.find({ target: "restaurants" })
+    .sort({ createdAt: -1 })
+    .limit(20);
+  res.json({ notifications });
 });

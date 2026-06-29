@@ -18,6 +18,7 @@ import { useSocket } from "../context/SocketContext";
 import RiderOrderRequest from "../components/RiderOrderRequest";
 import RiderCurrentOrder from "../components/RiderCurrentOrder";
 import RiderOrderMap from "../components/RiderOrderMap";
+import { NotificationDropdown } from "../components/NotificationDropdown";
 
 interface IRider {
   _id: string;
@@ -432,6 +433,10 @@ const RiderDashboard = () => {
             Rider Dashboard
           </h1>
           <div className="flex items-center gap-3">
+            <NotificationDropdown
+              fetchUrl={`${riderService}/api/rider/notifications`}
+              storageKey="lastViewedRiderNotificationId"
+            />
             <button
               onClick={toggleAudio}
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border transition-all cursor-pointer ${

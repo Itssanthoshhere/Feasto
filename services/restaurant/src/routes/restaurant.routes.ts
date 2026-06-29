@@ -7,6 +7,7 @@ import {
   getNearbyRestaurant,
   updateRestaurant,
   updateStatusRestaurant,
+  getNotifications,
 } from "../controllers/restaurant.controllers.js";
 import uploadFile from "../middlewares/multer.js";
 
@@ -17,6 +18,7 @@ router.get("/my", isAuth, isSeller, fetchMyRestaurant);
 router.put("/status", isAuth, isSeller, updateStatusRestaurant);
 router.put("/edit", isAuth, isSeller, updateRestaurant);
 router.get("/all", isAuth, getNearbyRestaurant);
+router.get("/notifications", isAuth, isSeller, getNotifications);
 router.get("/:id", isAuth, fetchSingleRestaurant);
 
 export default router;

@@ -3,6 +3,7 @@ import getBuffer from "../config/datauri.js";
 import { AuthenticatedRequest } from "../middlewares/isAuth.js";
 import TryCatch from "../middlewares/trycatch.js";
 import { Rider } from "../model/Rider.js";
+import { Notification } from "../model/Notification.js";
 
 export const addRiderProfile = TryCatch(
   async (req: AuthenticatedRequest, res) => {
@@ -57,15 +58,23 @@ export const addRiderProfile = TryCatch(
     }
 
     if (!/^\d{10}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: "Invalid Phone Number. Must be exactly 10 digits." });
+      return res
+        .status(400)
+        .json({ message: "Invalid Phone Number. Must be exactly 10 digits." });
     }
     if (!/^\d{12}$/.test(aadhaarNumber)) {
-      return res.status(400).json({ message: "Invalid Aadhaar Number. Must be exactly 12 digits." });
+      return res.status(400).json({
+        message: "Invalid Aadhaar Number. Must be exactly 12 digits.",
+      });
     }
-    if (!/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))) {
-      return res.status(400).json({ message: "Invalid Driving License. Must be 15 or 16 alphanumeric characters." });
+    if (
+      !/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))
+    ) {
+      return res.status(400).json({
+        message:
+          "Invalid Driving License. Must be 15 or 16 alphanumeric characters.",
+      });
     }
-
 
     const existingProfile = await Rider.findOne({
       userId: user._id,
@@ -421,7 +430,9 @@ export const incrementRiderEarnings = TryCatch(async (req, res) => {
   const { riderId, amount, orderId } = req.body;
 
   if (!riderId || amount === undefined || !orderId) {
-    return res.status(400).json({ message: "riderId, orderId, and amount are required" });
+    return res
+      .status(400)
+      .json({ message: "riderId, orderId, and amount are required" });
   }
 
   const numAmount = Number(amount);
@@ -433,7 +444,7 @@ export const incrementRiderEarnings = TryCatch(async (req, res) => {
     { _id: riderId, processedOrders: { $ne: orderId } },
     {
       $inc: { totalEarnings: numAmount, totalDeliveries: 1 },
-      $push: { processedOrders: orderId }
+      $push: { processedOrders: orderId },
     },
     { new: true },
   );
@@ -443,10 +454,19 @@ export const incrementRiderEarnings = TryCatch(async (req, res) => {
     if (!existingRider) {
       return res.status(404).json({ message: "Rider not found" });
     }
-    return res.json({ success: true, message: "Already processed", totalEarnings: existingRider.totalEarnings, totalDeliveries: existingRider.totalDeliveries });
+    return res.json({
+      success: true,
+      message: "Already processed",
+      totalEarnings: existingRider.totalEarnings,
+      totalDeliveries: existingRider.totalDeliveries,
+    });
   }
 
-  res.json({ success: true, totalEarnings: rider.totalEarnings, totalDeliveries: rider.totalDeliveries });
+  res.json({
+    success: true,
+    totalEarnings: rider.totalEarnings,
+    totalDeliveries: rider.totalDeliveries,
+  });
 });
 
 // Authenticated — rider edits their own profile
@@ -469,22 +489,34 @@ export const updateRiderProfile = TryCatch(
 
     if (phoneNumber) {
       if (!/^\d{10}$/.test(phoneNumber)) {
-        return res.status(400).json({ message: "Invalid Phone Number. Must be exactly 10 digits." });
+        return res.status(400).json({
+          message: "Invalid Phone Number. Must be exactly 10 digits.",
+        });
       }
       rider.phoneNumber = phoneNumber;
     }
 
     if (aadhaarNumber && aadhaarNumber !== rider.aadhaarNumber) {
       if (!/^\d{12}$/.test(aadhaarNumber)) {
-        return res.status(400).json({ message: "Invalid Aadhaar Number. Must be exactly 12 digits." });
+        return res.status(400).json({
+          message: "Invalid Aadhaar Number. Must be exactly 12 digits.",
+        });
       }
       rider.aadhaarNumber = aadhaarNumber;
       identityChanged = true;
     }
 
-    if (drivingLicenseNumber && drivingLicenseNumber !== rider.drivingLicenseNumber) {
-      if (!/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))) {
-        return res.status(400).json({ message: "Invalid Driving License. Must be 15 or 16 alphanumeric characters." });
+    if (
+      drivingLicenseNumber &&
+      drivingLicenseNumber !== rider.drivingLicenseNumber
+    ) {
+      if (
+        !/^[A-Z0-9]{15,16}$/i.test(drivingLicenseNumber.replace(/[\s-]/g, ""))
+      ) {
+        return res.status(400).json({
+          message:
+            "Invalid Driving License. Must be 15 or 16 alphanumeric characters.",
+        });
       }
       rider.drivingLicenseNumber = drivingLicenseNumber;
       identityChanged = true;
@@ -495,7 +527,9 @@ export const updateRiderProfile = TryCatch(
     if (file) {
       const fileBuffer = getBuffer(file);
       if (!fileBuffer?.content) {
-        return res.status(500).json({ message: "Failed to generate image buffer" });
+        return res
+          .status(500)
+          .json({ message: "Failed to generate image buffer" });
       }
 
       try {
@@ -525,3 +559,10 @@ export const updateRiderProfile = TryCatch(
     res.json({ message: "Profile updated successfully", rider });
   },
 );
+
+export const getNotifications = TryCatch(async (req, res) => {
+  const notifications = await Notification.find({ target: "riders" })
+    .sort({ createdAt: -1 })
+    .limit(20);
+  res.json({ notifications });
+});
