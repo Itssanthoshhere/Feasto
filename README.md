@@ -1,65 +1,135 @@
 # 🛵 Feasto — Full-Stack Food Delivery Platform
 
-A production-style, microservices-based food ordering and delivery platform with real-time tracking, multi-role dashboards, and dual payment gateways — built to mirror how modern apps like Swiggy and Zomato are architected.
-
-<div align="center">
+<p>
   <a href="https://getfeasto.vercel.app/" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-brightgreen?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-getfeasto.vercel.app-brightgreen?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>&nbsp;
   <a href="https://santhosh-vs-portfolio.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/🌐%20Portfolio-black?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" />
+    <img src="https://img.shields.io/badge/🌐%20Portfolio-santhosh--vs-black?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" />
   </a>&nbsp;
   <a href="https://github.com/Itssanthoshhere" target="_blank">
-    <img src="https://img.shields.io/badge/%20GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+    <img src="https://img.shields.io/badge/GitHub-Itssanthoshhere-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
   </a>
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/React-19.2.6-61DAFB?style=flat-square&logo=react" />
+  <img src="https://img.shields.io/badge/TypeScript-6.x-3178C6?style=flat-square&logo=typescript" />
+  <img src="https://img.shields.io/badge/Node.js-Express_5-339933?style=flat-square&logo=nodedotjs" />
+  <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb" />
+  <img src="https://img.shields.io/badge/RabbitMQ-3.x-FF6600?style=flat-square&logo=rabbitmq" />
+  <img src="https://img.shields.io/badge/Socket.io-4.8-010101?style=flat-square&logo=socketdotio" />
+  <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker" />
+</p>
+
+<br/>
+
+> **A production-style, microservices-based food delivery platform** — connecting customers, restaurants, riders, and admins through a role-aware React frontend and six independent Node.js backend services. Architected to mirror how modern apps like Swiggy and Zomato are built.
+
 </div>
 
 ---
 
 ## 📋 Table of Contents
 
-- [🛵 Feasto — Full-Stack Food Delivery Platform](#-feasto--full-stack-food-delivery-platform)
-  - [📋 Table of Contents](#-table-of-contents)
-  - [📖 About The Project](#-about-the-project)
-  - [✨ Features](#-features)
-    - [🔐 Authentication \& Roles](#-authentication--roles)
-    - [🛒 Customer Experience](#-customer-experience)
-    - [🏪 Restaurant (Seller) Dashboard](#-restaurant-seller-dashboard)
-    - [🛵 Rider Dashboard](#-rider-dashboard)
-    - [👑 Admin Control Panel](#-admin-control-panel)
-    - [⚡ Real-Time \& Async Pipeline](#-real-time--async-pipeline)
-  - [🛠️ Tech Stack](#️-tech-stack)
-  - [🏗️ Project Structure](#️-project-structure)
-  - [🚀 Getting Started](#-getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-    - [Environment Variables](#environment-variables)
-    - [Running Locally](#running-locally)
-  - [🎯 Key Components \& Services](#-key-components--services)
-    - [1. Order Lifecycle (`order.controller.ts`)](#1-order-lifecycle-ordercontrollerts)
-    - [2. Payment Pipeline (RabbitMQ)](#2-payment-pipeline-rabbitmq)
-    - [3. `<Checkout />`](#3-checkout-)
-    - [4. Socket Context \& Realtime Service](#4-socket-context--realtime-service)
-  - [📡 Service Ports (Default)](#-service-ports-default)
-  - [🌐 Live Demo](#-live-demo)
-  - [🤝 Contributing](#-contributing)
-  - [📜 License \& Attribution](#-license--attribution)
+- [Overview](#-overview)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Environment Variables](#-environment-variables)
+- [Key Design Decisions](#-key-design-decisions)
+- [API & Service Communication](#-api--service-communication)
+- [Live Demo](#-live-demo)
+- [Contributing](#-contributing)
 
 ---
 
-## 📖 About The Project
+## 🔭 Overview
 
-**Feasto** is a full-stack food delivery ecosystem that connects **customers**, **restaurants (sellers)**, **delivery riders**, and **platform admins** through a role-aware React frontend and six independent Node.js microservices.
+**Feasto** is a full-stack food delivery ecosystem that demonstrates real-world microservices architecture at the application level. It implements:
 
-This project demonstrates:
+- **Decoupled async communication** via RabbitMQ between payment, restaurant, and rider services
+- **Real-time WebSocket** delivery with JWT-authenticated rooms per user and restaurant
+- **Geospatial queries** in MongoDB for location-aware restaurant discovery and rider dispatching
+- **Dual payment gateway** integration (Razorpay + Stripe) with idempotent verification
+- **Multi-role RBAC** for customers, sellers (restaurant owners), riders, and admins — all from a single React SPA
 
-- 🔑 **Google OAuth + JWT** identity across all services
-- 🗄️ **MongoDB + Mongoose** with geospatial queries for nearby restaurants and riders
-- 🐇 **RabbitMQ** for decoupled payment confirmation and rider dispatch events
-- 📡 **Socket.io** for live order status updates to customers, sellers, and riders
-- 💳 **Razorpay & Stripe** dual payment gateway integration
-- ☁️ **Cloudinary** image uploads via a dedicated utils service
-- 🗺️ **Leaflet** maps for delivery tracking and address selection
+This is a portfolio-grade project built for educational purposes, demonstrating how modern food delivery platforms handle ordering, payments, real-time updates, and dispatch logic.
+
+---
+
+## 🏗️ Architecture
+
+### Service Map
+
+```
+                          ┌──────────────────────┐
+                          │   Frontend (React)    │
+                          │   Vite · Port 5173    │
+                          │   Deployed on Vercel  │
+                          └──────┬───────────────┘
+                                 │ HTTP / WebSocket
+          ┌──────────────────────┼──────────────────────┐
+          │                      │                      │
+   ┌──────▼──────┐       ┌───────▼──────┐      ┌───────▼──────┐
+   │  Auth :8000 │       │Rest :8002    │      │ Utils :8003  │
+   │  Google OAuth│      │Core Domain   │      │ Payments &   │
+   │  JWT Sessions│      │Orders, Cart  │      │ Cloudinary   │
+   └─────────────┘       └──────┬───────┘      └──────┬───────┘
+                                │                      │
+                         ┌──────▼──────────────────────▼──────┐
+                         │           RabbitMQ                  │
+                         │  PAYMENT_SUCCESS · ORDER_READY      │
+                         └──────┬──────────────────────┬───────┘
+                                │                      │
+                         ┌──────▼──────┐       ┌───────▼──────┐
+                         │  Rider :8005│       │Realtime :8004│
+                         │  Dispatch & │       │Socket.io Hub │
+                         │  Geospatial │       │JWT-auth rooms│
+                         └─────────────┘       └─────────────┘
+
+                         ┌─────────────┐
+                         │ Admin :8006 │
+                         │ Cross-DB    │
+                         │ Analytics   │
+                         └─────────────┘
+
+                              All services ──▶ MongoDB Atlas
+```
+
+### Async Order Pipeline
+
+```
+Customer pays
+    │
+    ▼
+Utils Service (verifies Razorpay / Stripe)
+    │
+    ▼
+RabbitMQ → PAYMENT_SUCCESS
+    │
+    ▼
+Restaurant Service (marks order paid, clears cart)
+    │
+    ├──▶ Socket.io → notifies restaurant of new order
+    │
+Seller marks order ready_for_rider
+    │
+    ▼
+RabbitMQ → ORDER_READY_FOR_RIDER
+    │
+    ▼
+Rider Service (geospatial query: riders within 500m)
+    │
+    ├──▶ Socket.io → notifies nearby riders
+    │
+Rider accepts → Order assigned
+    │
+    ▼
+Socket.io → live tracking updates to customer
+```
 
 ---
 
@@ -67,79 +137,68 @@ This project demonstrates:
 
 ### 🔐 Authentication & Roles
 
-- Google OAuth sign-in via `@react-oauth/google`.
-- JWT session tokens (15-day expiry) shared across all microservices.
-- Role selection flow: **customer**, **seller** (restaurant owner), or **rider**.
-- Separate admin role with a dedicated dashboard (set manually in MongoDB).
+- Google OAuth sign-in via `@react-oauth/google`
+- JWT session tokens with 15-day expiry, shared and verified across all microservices
+- Role selection flow post-login: **customer**, **seller**, or **rider**
+- Separate **admin** role (manually assigned in MongoDB) with dedicated control panel
 
 ### 🛒 Customer Experience
 
-- Location-aware restaurant discovery with Haversine distance sorting.
-- Category filters, search, and restaurant detail pages with menu items.
-- Cart management (single-restaurant constraint enforced server-side).
-- Saved delivery addresses with map-based geocoding.
-- Checkout with promo codes, delivery fee logic (free above ₹250), and platform fees.
-- Dual payment: **Razorpay** (modal) and **Stripe** (redirect).
-- Live order tracking via Socket.io with Leaflet routing maps.
-- Order history and post-delivery reviews.
+- **Location-aware restaurant discovery** — Haversine distance sorting, category filters, and search
+- **Cart management** — single-restaurant constraint enforced server-side to prevent cross-restaurant orders
+- **Saved delivery addresses** — map-based geocoding via Leaflet
+- **Checkout flow** — promo code validation, delivery fee logic (free above ₹250), ₹7 platform fee
+- **Dual payment** — Razorpay modal (INR) and Stripe redirect (international cards)
+- **Live order tracking** — Socket.io status updates with Leaflet routing maps
+- **Order history** and post-delivery review system
 
 ### 🏪 Restaurant (Seller) Dashboard
 
-- One restaurant per seller with Cloudinary image upload.
-- Menu item CRUD with availability toggles.
-- Real-time incoming order notifications via WebSocket.
-- Order status pipeline: `accepted` → `preparing` → `ready_for_rider`.
-- Promotion code management (percent/flat discounts).
-- Revenue analytics with 7-day Recharts bar graph.
-- Kitchen load indicator affecting estimated prep time.
+- One restaurant per seller with Cloudinary image uploads
+- **Menu CRUD** with per-item availability toggles
+- **Real-time order notifications** via WebSocket (no page refresh needed)
+- **Order pipeline management** — `pending` → `accepted` → `preparing` → `ready_for_rider`
+- **Promotion code management** — percent and flat-rate discounts
+- **Revenue analytics** — 7-day Recharts bar graph
+- **Kitchen load indicator** — affects estimated prep time shown to customers
 
 ### 🛵 Rider Dashboard
 
-- Rider onboarding with Aadhaar/DL verification (admin-approved).
-- Geospatial rider matching within 500m when orders are ready.
-- Real-time order request notifications.
-- Pickup → delivery status flow with earnings tracking.
-- Live map routing from restaurant to customer via Leaflet.
+- Onboarding with Aadhaar / DL document upload (admin approval required)
+- **Geospatial dispatch** — matched to orders within 500m radius when ready
+- Real-time order request notifications with accept/decline flow
+- **Pickup → delivery status** pipeline with earnings tracking
+- Live map routing from restaurant to customer via Leaflet
 
 ### 👑 Admin Control Panel
 
-- Platform analytics: revenue, active orders, user counts.
-- Restaurant & rider verification/unverification workflows.
-- Revenue charts, order history, and user management.
-- Activity log and broadcast notification system.
-- Dark mode toggle and CSV export.
-
-### ⚡ Real-Time & Async Pipeline
-
-```
-Customer pays → Utils Service verifies → RabbitMQ PAYMENT_SUCCESS
-  → Restaurant Service marks paid → Socket.io notifies restaurant
-  → Seller marks ready → RabbitMQ ORDER_READY_FOR_RIDER
-  → Rider Service finds nearby riders → Socket.io notifies riders
-  → Rider accepts → Order assigned → Live tracking updates
-```
+- Platform-wide analytics: revenue, active orders, registered users
+- **Restaurant & rider verification workflows** — approve or revoke
+- Revenue charts, full order history, and user management
+- Activity log, broadcast notification system
+- Dark mode toggle and CSV export
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category          | Technology         | Version | Purpose                                              |
-| :---------------- | :----------------- | :------ | :--------------------------------------------------- |
-| **Frontend**      | React              | 19.2.6  | SPA with role-based routing                          |
-| **Build Tool**    | Vite               | 8.0.12  | Fast dev server and production bundling              |
-| **Styling**       | Tailwind CSS       | 4.3.1   | Utility-first responsive UI                          |
-| **Backend**       | Express.js         | 5.2.1   | REST API for all microservices                       |
-| **Language**      | TypeScript         | 6.x     | Type safety across frontend and backend              |
-| **Database**      | MongoDB            | —       | Document store with 2dsphere geospatial indexes      |
-| **ODM**           | Mongoose           | 9.7.x   | Schema modeling and aggregation pipelines            |
-| **Message Queue** | RabbitMQ           | 3.x     | Async payment and rider dispatch events              |
-| **Real-Time**     | Socket.io          | 4.8.3   | WebSocket rooms per user/restaurant                  |
-| **Auth**          | Google OAuth + JWT | —       | Identity provider and stateless sessions             |
-| **Payments**      | Razorpay + Stripe  | —       | INR payment processing (India + international cards) |
-| **Media**         | Cloudinary         | 2.10.0  | Image upload and CDN delivery                        |
-| **Maps**          | Leaflet            | 1.9.4   | Address picker and live delivery routing             |
-| **Charts**        | Recharts           | 3.9.0   | Admin and seller analytics visualizations            |
-| **Deployment**    | Docker + Vercel    | —       | Containerized services; SPA on Vercel                |
+| Layer             | Technology         | Version | Role                                            |
+| :---------------- | :----------------- | :------ | :---------------------------------------------- |
+| **Frontend**      | React              | 19.2.6  | SPA with role-based routing                     |
+| **Build**         | Vite               | 8.0.12  | Dev server + production bundling                |
+| **Styling**       | Tailwind CSS       | 4.3.1   | Utility-first responsive UI                     |
+| **Backend**       | Express.js         | 5.2.1   | REST API for all microservices                  |
+| **Language**      | TypeScript         | 6.x     | Type safety across frontend & backend           |
+| **Database**      | MongoDB Atlas      | —       | Document store with 2dsphere geospatial indexes |
+| **ODM**           | Mongoose           | 9.7.x   | Schema modeling and aggregation pipelines       |
+| **Message Queue** | RabbitMQ           | 3.x     | Async payment confirmation & rider dispatch     |
+| **Real-Time**     | Socket.io          | 4.8.3   | JWT-authenticated WebSocket rooms               |
+| **Auth**          | Google OAuth + JWT | —       | Identity provider + stateless sessions          |
+| **Payments**      | Razorpay + Stripe  | —       | INR modal + international card redirect         |
+| **Media**         | Cloudinary         | 2.10.0  | Image upload and CDN delivery                   |
+| **Maps**          | Leaflet            | 1.9.4   | Address picker + live delivery routing          |
+| **Charts**        | Recharts           | 3.9.0   | Admin and seller analytics                      |
+| **Deployment**    | Docker + Vercel    | —       | Containerized services; SPA on Vercel           |
 
 ---
 
@@ -150,7 +209,7 @@ feasto/
 │
 ├── 📁 frontend/                          # React + Vite SPA (Vercel-deployed)
 │   ├── 📁 src/
-│   │   ├── 📁 pages/                     # Route-level screens
+│   │   ├── 📁 pages/
 │   │   │   ├── Home.tsx                  # Restaurant discovery (geo-sorted)
 │   │   │   ├── RestaurantPage.tsx        # Menu & add-to-cart
 │   │   │   ├── Cart.tsx                  # Cart review
@@ -159,60 +218,52 @@ feasto/
 │   │   │   ├── Restaurant.tsx            # Seller dashboard
 │   │   │   ├── RiderDashboard.tsx        # Rider delivery UI
 │   │   │   └── Admin.tsx                 # Platform admin panel
-│   │   ├── 📁 components/                # Reusable UI widgets
-│   │   │   ├── RestaurantCard.tsx        # Discovery card with distance
+│   │   ├── 📁 components/
+│   │   │   ├── RestaurantCard.tsx        # Discovery card with distance badge
 │   │   │   ├── OrderCard.tsx             # Order list item
 │   │   │   ├── UserOrderMap.tsx          # Customer live tracking map
 │   │   │   ├── RiderOrderMap.tsx         # Rider navigation map
 │   │   │   └── AdminRevenueChart.tsx     # Platform revenue Recharts
 │   │   ├── 📁 context/
-│   │   │   ├── AppContext.tsx            # Auth, cart, location global state
+│   │   │   ├── AppContext.tsx            # Auth, cart, location — global state
 │   │   │   └── SocketContext.tsx         # Socket.io connection manager
 │   │   └── main.tsx                      # Service URL config & providers
 │   └── vercel.json                       # SPA rewrite rules
 │
-├── 📁 services/
-│   ├── 📁 auth/                          # Port 8000 — Google OAuth, JWT, roles
-│   │   └── src/
-│   │       ├── controllers/auth.controller.ts
-│   │       ├── model/User.ts
-│   │       └── middlewares/isAuth.ts
-│   │
-│   ├── 📁 restaurant/                    # Port 8002 — Core domain service
-│   │   └── src/
-│   │       ├── controllers/              # Restaurant, cart, order, review, promo
-│   │       ├── models/                     # Order, Restaurant, Cart, Address, etc.
-│   │       └── config/
-│   │           ├── payment.consumer.ts   # RabbitMQ: payment → order placed
-│   │           └── order.publisher.ts    # RabbitMQ: order ready → riders
-│   │
-│   ├── 📁 utils/                         # Port 8003 — Payments & Cloudinary
-│   │   └── src/
-│   │       ├── controllers/payment.controller.ts
-│   │       └── config/verifyRazorpay.ts
-│   │
-│   ├── 📁 realtime/                      # Port 8004 — Socket.io hub
-│   │   └── src/
-│   │       ├── socket.ts                 # JWT-authenticated rooms
-│   │       └── routes/internal.routes.ts # Service-to-service emit API
-│   │
-│   ├── 📁 rider/                         # Port 8005 — Rider profiles & dispatch
-│   │   └── src/
-│   │       ├── model/Rider.ts            # 2dsphere geospatial index
-│   │       └── config/orderReady.consumer.ts
-│   │
-│   └── 📁 admin/                         # Port 8006 — Cross-DB admin queries
-│       └── src/
-│           ├── controllers/admin.ts      # Analytics, verification, notifications
-│           └── util/collection.ts        # Direct MongoDB collection access
-│
-├── Auth-Service-Setup.md                 # Per-service setup guides
-├── Restaurant-Service-Setup.md
-├── RabbitMQ-Docker-Setup.md
-├── Realtime-Service-Setup.md
-├── Rider-Service-Setup.md
-├── Utils-Service-Setup.md
-└── admin-setup.md
+└── 📁 services/
+    ├── 📁 auth/                          # Port 8000 — Google OAuth, JWT, roles
+    │   └── src/
+    │       ├── controllers/auth.controller.ts
+    │       ├── model/User.ts
+    │       └── middlewares/isAuth.ts
+    │
+    ├── 📁 restaurant/                    # Port 8002 — Core domain service
+    │   └── src/
+    │       ├── controllers/              # restaurant, cart, order, review, promo
+    │       ├── models/                   # Order, Restaurant, Cart, Address, etc.
+    │       └── config/
+    │           ├── payment.consumer.ts   # RabbitMQ: payment_success → order placed
+    │           └── order.publisher.ts    # RabbitMQ: order ready → riders
+    │
+    ├── 📁 utils/                         # Port 8003 — Payments & Cloudinary
+    │   └── src/
+    │       ├── controllers/payment.controller.ts
+    │       └── config/verifyRazorpay.ts
+    │
+    ├── 📁 realtime/                      # Port 8004 — Socket.io hub
+    │   └── src/
+    │       ├── socket.ts                 # JWT-authenticated rooms
+    │       └── routes/internal.routes.ts # Service-to-service emit API
+    │
+    ├── 📁 rider/                         # Port 8005 — Rider profiles & dispatch
+    │   └── src/
+    │       ├── model/Rider.ts            # 2dsphere geospatial index
+    │       └── config/orderReady.consumer.ts
+    │
+    └── 📁 admin/                         # Port 8006 — Cross-DB admin queries
+        └── src/
+            ├── controllers/admin.ts      # Analytics, verification, notifications
+            └── util/collection.ts        # Direct MongoDB collection access
 ```
 
 ---
@@ -221,89 +272,81 @@ feasto/
 
 ### Prerequisites
 
-Ensure you have the following installed:
+| Tool    | Minimum Version |
+| :------ | :-------------- |
+| Node.js | 18.0.0          |
+| npm     | 9.0.0           |
+| Docker  | Any recent      |
+| MongoDB | Local or Atlas  |
 
-- **Node.js** >= 18.0.0
-- **npm** >= 9.0.0
-- **MongoDB** (local or Atlas)
-- **Docker** (for RabbitMQ)
-- **Google Cloud Console** project with OAuth credentials
-- **Razorpay** and/or **Stripe** test keys
-- **Cloudinary** account
+You will also need accounts / credentials for:
 
-### Installation
+- **Google Cloud Console** — OAuth 2.0 client credentials
+- **Razorpay** — test key ID and secret
+- **Stripe** — test secret key
+- **Cloudinary** — cloud name, API key, API secret
 
-1. **Clone the repository**
+---
 
-   ```bash
-   git clone https://github.com/Itssanthoshhere/Feasto.git
-   cd Feasto
-   ```
+### 1. Clone the Repository
 
-2. **Start RabbitMQ**
+```bash
+git clone https://github.com/Itssanthoshhere/Feasto.git
+cd Feasto
+```
 
-   ```bash
-   docker run -d \
-     --hostname rabbitmq-host \
-     --name rabbitmq-container \
-     -e RABBITMQ_DEFAULT_USER=admin \
-     -e RABBITMQ_DEFAULT_PASS=admin123 \
-     -p 5672:5672 \
-     -p 15672:15672 \
-     rabbitmq:3-management
-   ```
+### 2. Start RabbitMQ (Docker)
 
-3. **Install and configure each service**
+```bash
+docker run -d \
+  --hostname rabbitmq-host \
+  --name rabbitmq-container \
+  -e RABBITMQ_DEFAULT_USER=admin \
+  -e RABBITMQ_DEFAULT_PASS=admin123 \
+  -p 5672:5672 \
+  -p 15672:15672 \
+  rabbitmq:3-management
+```
 
-   ```bash
-   # Install dependencies for all services
-   cd services/auth && npm install && cd ../..
-   cd services/restaurant && npm install && cd ../..
-   cd services/utils && npm install && cd ../..
-   cd services/realtime && npm install && cd ../..
-   cd services/rider && npm install && cd ../..
-   cd services/admin && npm install && cd ../..
-   cd frontend && npm install && cd ..
-   ```
+RabbitMQ management UI will be available at [http://localhost:15672](http://localhost:15672) (admin / admin123).
 
-4. **Create `.env` files** in each service directory (see below).
+### 3. Install Dependencies
 
-5. **Build and start services** (in separate terminals):
+```bash
+cd services/auth       && npm install && cd ../..
+cd services/restaurant && npm install && cd ../..
+cd services/utils      && npm install && cd ../..
+cd services/realtime   && npm install && cd ../..
+cd services/rider      && npm install && cd ../..
+cd services/admin      && npm install && cd ../..
+cd frontend            && npm install && cd ..
+```
 
-   ```bash
-   # Auth (8000)
-   cd services/auth && npm run dev
+### 4. Configure Environment Variables
 
-   # Restaurant (8002)
-   cd services/restaurant && npm run dev
+Create `.env` files in each service directory. See [Environment Variables](#-environment-variables) below.
 
-   # Utils (8003)
-   cd services/utils && npm run dev
+### 5. Start Services
 
-   # Realtime (8004)
-   cd services/realtime && npm run dev
+Run each in a separate terminal:
 
-   # Rider (8005)
-   cd services/rider && npm run dev
+```bash
+cd services/auth       && npm run dev   # :8000
+cd services/restaurant && npm run dev   # :8002
+cd services/utils      && npm run dev   # :8003
+cd services/realtime   && npm run dev   # :8004
+cd services/rider      && npm run dev   # :8005
+cd services/admin      && npm run dev   # :8006
+cd frontend            && npm run dev   # :5173
+```
 
-   # Admin (8006)
-   cd services/admin && npm run dev
-   ```
+Open [http://localhost:5173](http://localhost:5173).
 
-6. **Start the frontend**
+---
 
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+## 🔧 Environment Variables
 
-   Open [http://localhost:5173](http://localhost:5173).
-
-### Environment Variables
-
-Each service requires its own `.env`. Key variables:
-
-**Auth Service (`services/auth/.env`)**
+### Auth Service — `services/auth/.env`
 
 ```env
 PORT=8000
@@ -313,7 +356,7 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-**Restaurant Service (`services/restaurant/.env`)**
+### Restaurant Service — `services/restaurant/.env`
 
 ```env
 PORT=8002
@@ -329,7 +372,7 @@ ORDER_READY_QUEUE=order_ready_queue
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-**Utils Service (`services/utils/.env`)**
+### Utils Service — `services/utils/.env`
 
 ```env
 PORT=8003
@@ -346,7 +389,37 @@ CLOUD_API_KEY=your_cloudinary_key
 CLOUD_SECRET_KEY=your_cloudinary_secret
 ```
 
-**Frontend (`frontend/.env`)**
+### Realtime Service — `services/realtime/.env`
+
+```env
+PORT=8004
+JWT_SECRET=your_jwt_secret
+INTERNAL_SERVICE_KEY=your_shared_internal_key
+```
+
+### Rider Service — `services/rider/.env`
+
+```env
+PORT=8005
+MONGO_URI=mongodb://localhost:27017/feasto
+JWT_SECRET=your_jwt_secret
+UTILS_SERVICE=http://localhost:8003
+RESTAURANT_SERVICE=http://localhost:8002
+REALTIME_SERVICE=http://localhost:8004
+INTERNAL_SERVICE_KEY=your_shared_internal_key
+RABBITMQ_URL=amqp://admin:admin123@localhost:5672
+ORDER_READY_QUEUE=order_ready_queue
+```
+
+### Admin Service — `services/admin/.env`
+
+```env
+PORT=8006
+MONGO_URI=mongodb://localhost:27017/feasto
+JWT_SECRET=your_jwt_secret
+```
+
+### Frontend — `frontend/.env`
 
 ```env
 VITE_AUTH_SERVICE_URL=http://localhost:8000
@@ -358,74 +431,93 @@ VITE_ADMIN_SERVICE_URL=http://localhost:8006
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
-> See individual `*-Setup.md` files in the repo root for detailed per-service configuration.
-
-### Running Locally
-
-| Service     | Command       | URL                    |
-| :---------- | :------------ | :--------------------- |
-| Frontend    | `npm run dev` | http://localhost:5173  |
-| Auth        | `npm run dev` | http://localhost:8000  |
-| Restaurant  | `npm run dev` | http://localhost:8002  |
-| Utils       | `npm run dev` | http://localhost:8003  |
-| Realtime    | `npm run dev` | http://localhost:8004  |
-| Rider       | `npm run dev` | http://localhost:8005  |
-| Admin       | `npm run dev` | http://localhost:8006  |
-| RabbitMQ UI | —             | http://localhost:15672 |
+> **Important:** `JWT_SECRET` must be identical across all services that issue or verify tokens. Similarly, `INTERNAL_SERVICE_KEY` must match across any service that calls another service's internal endpoints.
 
 ---
 
-## 🎯 Key Components & Services
+## 🎯 Key Design Decisions
 
-### 1. Order Lifecycle (`order.controller.ts`)
+### Order Lifecycle (`order.controller.ts`)
 
-The central orchestrator for the entire platform:
+The Restaurant Service owns the central order state machine. On order creation it:
 
-- Validates cart, address ownership, restaurant open status, and single-restaurant constraint.
-- Computes Haversine delivery distance, fees, promo discounts, and ETA.
-- Creates pending orders with a 15-minute TTL (MongoDB TTL index auto-deletes unpaid orders).
-- Publishes RabbitMQ events when orders are ready for rider pickup.
-- Emits Socket.io events on every status transition.
+1. Validates cart contents, address ownership, restaurant open status, and the single-restaurant cart constraint
+2. Computes Haversine delivery distance, delivery fee (free above ₹250), platform fee (₹7), promo discounts, and ETA
+3. Creates a `pending` order with a **15-minute TTL** — MongoDB automatically deletes unpaid orders via a TTL index
+4. After payment confirmation (via RabbitMQ), transitions the order state and emits Socket.io events on every subsequent status change
 
-### 2. Payment Pipeline (RabbitMQ)
+### Payment Decoupling (RabbitMQ)
 
-Decoupled payment verification prevents race conditions:
+Rather than having the payment service directly update order state (synchronous coupling), the payment verification is decoupled:
 
-1. Frontend calls Utils Service → Razorpay/Stripe verification.
-2. Utils publishes `PAYMENT_SUCCESS` to RabbitMQ.
-3. Restaurant Service consumer atomically marks order paid and clears cart.
-4. Socket.io notifies the restaurant of a new order.
+1. Frontend calls Utils Service → Razorpay/Stripe signature verification
+2. Utils publishes `PAYMENT_SUCCESS` to RabbitMQ
+3. Restaurant Service consumer atomically marks the order as paid, clears the cart, and notifies the restaurant
 
-Includes idempotency checks and Razorpay signature verification.
+This prevents race conditions and makes the payment service independently deployable.
 
-### 3. `<Checkout />`
+### Geospatial Rider Dispatch
 
-Multi-step checkout with:
+`Rider.ts` stores coordinates with a `2dsphere` index. When an order is ready, the Rider Service queries:
 
-- Address radio selection with add-new flow.
-- Client-side promo validation against restaurant promotions API.
-- Parallel Razorpay modal and Stripe redirect payment paths.
-- Fee breakdown: subtotal, delivery (₹49 or free), platform fee (₹7), discounts.
+```js
+Rider.find({
+  location: {
+    $near: {
+      $geometry: { type: "Point", coordinates: [lng, lat] },
+      $maxDistance: 500, // meters
+    },
+  },
+  isOnline: true,
+  currentOrder: null,
+});
+```
 
-### 4. Socket Context & Realtime Service
+All matching riders receive a real-time Socket.io notification. First to accept wins the order.
 
-- JWT-authenticated Socket.io connections join `user:{id}` and `restaurant:{id}` rooms.
-- Internal `/api/v1/internal/emit` endpoint allows backend services to push events securely via `x-internal-key`.
-- Events: `order:new`, `order:update`, `order:available`, `order:rider_assigned`.
+### Internal Service Communication
+
+Services communicate via a shared `INTERNAL_SERVICE_KEY` header. The Realtime Service exposes a `/api/v1/internal/emit` endpoint that only other backend services can call, keeping WebSocket logic centralized and out of domain services.
 
 ---
 
-## 📡 Service Ports (Default)
+## 📡 API & Service Communication
+
+### Service Ports (Default)
+
+| Service     | Port  | Responsibility                         |
+| :---------- | :---- | :------------------------------------- |
+| Frontend    | 5173  | React SPA                              |
+| Auth        | 8000  | Google OAuth, JWT issuance             |
+| Restaurant  | 8002  | Orders, cart, menu, reviews, promos    |
+| Utils       | 8003  | Payments (Razorpay/Stripe), Cloudinary |
+| Realtime    | 8004  | Socket.io hub, internal emit API       |
+| Rider       | 8005  | Rider profiles, dispatch, geospatial   |
+| Admin       | 8006  | Platform analytics, verification       |
+| RabbitMQ UI | 15672 | Queue monitoring dashboard             |
+
+### Socket.io Events
+
+| Event                  | Direction           | Description                   |
+| :--------------------- | :------------------ | :---------------------------- |
+| `order:new`            | Server → Restaurant | New paid order arrived        |
+| `order:update`         | Server → Customer   | Order status changed          |
+| `order:available`      | Server → Rider      | Nearby order ready for pickup |
+| `order:rider_assigned` | Server → Customer   | Rider accepted the order      |
+
+---
+
+## 📡 Service Ports
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │   Frontend  │────▶│  Auth :8000  │     │ Admin :8006 │
 │   :5173     │     └──────────────┘     └─────────────┘
 │  (Vercel)   │     ┌──────────────┐     ┌─────────────┐
-│             │────▶│Restaurant    │────▶│ Realtime    │
-│             │     │   :8002      │     │   :8004     │
+│             │────▶│ Restaurant   │────▶│  Realtime   │
+│             │     │    :8002     │     │    :8004    │
 │             │     └──────┬───────┘     └─────────────┘
-│             │            │ RabbitMQ
+│             │            │  RabbitMQ
 │             │     ┌──────▼───────┐     ┌─────────────┐
 │             │────▶│  Utils :8003 │     │ Rider :8005 │
 └─────────────┘     └──────────────┘     └─────────────┘
@@ -437,27 +529,39 @@ Multi-step checkout with:
 
 ## 🌐 Live Demo
 
-- **Production Frontend:** [https://getfeasto.vercel.app](https://getfeasto.vercel.app/)
-- **Source Code:** [https://github.com/Itssanthoshhere/Feasto](https://github.com/Itssanthoshhere/Feasto)
+| Resource            | URL                                                                                    |
+| :------------------ | :------------------------------------------------------------------------------------- |
+| Production Frontend | [https://getfeasto.vercel.app](https://getfeasto.vercel.app/)                          |
+| Source Code         | [https://github.com/Itssanthoshhere/Feasto](https://github.com/Itssanthoshhere/Feasto) |
 
-The live deployment hosts the React frontend on Vercel. Backend microservices must be running separately (or deployed to your own infrastructure) for full functionality — auth, ordering, payments, and real-time tracking.
+> The live deployment hosts the React frontend on Vercel. For full end-to-end functionality (auth, ordering, payments, real-time tracking), the backend microservices need to be running — either locally or deployed to your own infrastructure.
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the [repository](https://github.com/Itssanthoshhere/Feasto)
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add order cancellation flow'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+Contributions, issues, and feature requests are welcome.
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes: `git commit -m 'feat: describe the change'`
+4. Push to the branch: `git push origin feature/your-feature-name`
 5. Open a Pull Request
 
 ---
 
 ## 📜 License & Attribution
 
-This project is for educational and portfolio purposes.
+This project is built for **educational and portfolio purposes**.
 
-Developed by **[V S Santhosh](https://github.com/Itssanthoshhere)** ([@Itssanthoshhere](https://github.com/Itssanthoshhere)).
+Developed by **[V S Santhosh](https://github.com/Itssanthoshhere)** — [@Itssanthoshhere](https://github.com/Itssanthoshhere)
 
-⭐ If this project helped you understand microservices architecture for food delivery platforms, please give it a [star on GitHub](https://github.com/Itssanthoshhere/Feasto)!
+Portfolio: [santhosh-vs-portfolio.vercel.app](https://santhosh-vs-portfolio.vercel.app)
+
+---
+
+<div align="center">
+
+⭐ **If Feasto helped you understand microservices architecture for food delivery, give it a star!**
+
+</div>
