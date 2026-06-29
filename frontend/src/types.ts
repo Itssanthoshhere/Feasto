@@ -51,6 +51,18 @@ export interface IRestaurant {
   createdAt: Date;
 }
 
+export interface IPromotion {
+  _id: string;
+  restaurantId: string;
+  code: string;
+  discountType: "percent" | "flat";
+  discountValue: number;
+  isActive: boolean;
+  minOrderValue: number;
+  expiresAt?: string;
+  createdAt: string;
+}
+
 export interface IMenuItem {
   _id: string;
   restaurantId: string;

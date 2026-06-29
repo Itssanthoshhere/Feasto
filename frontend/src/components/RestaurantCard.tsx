@@ -1,15 +1,25 @@
 import { Link } from "react-router-dom";
-import { BiMapPin } from "react-icons/bi";
+import { BiTime, BiStar } from "react-icons/bi";
 
 type props = {
   id: string;
   image: string;
   name: string;
-  distance: string;
+  eta: string;
+  rating: number;
+  totalReviews: number;
   isOpen: boolean;
 };
 
-const RestaurantCard = ({ id, image, name, distance, isOpen }: props) => {
+const RestaurantCard = ({
+  id,
+  image,
+  name,
+  eta,
+  rating,
+  totalReviews,
+  isOpen,
+}: props) => {
   return (
     <Link
       to={`/restaurant/${id}`}
@@ -17,7 +27,7 @@ const RestaurantCard = ({ id, image, name, distance, isOpen }: props) => {
         !isOpen ? "opacity-80" : ""
       }`}
     >
-      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+      <div className="relative w-full h-48 overflow-hidden bg-slate-100">
         <img
           src={image}
           alt={name}
@@ -26,9 +36,9 @@ const RestaurantCard = ({ id, image, name, distance, isOpen }: props) => {
           }`}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/80 via-transparent to-black/10" />
 
-        <div className="absolute top-4 left-4 flex gap-2">
+        <div className="absolute flex gap-2 top-4 left-4">
           <span
             className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md ${
               isOpen
@@ -40,17 +50,26 @@ const RestaurantCard = ({ id, image, name, distance, isOpen }: props) => {
           </span>
         </div>
 
-        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-          <h3 className="truncate text-xl font-extrabold text-white drop-shadow-sm leading-tight">
+        <div className="absolute flex flex-col justify-end bottom-4 left-4 right-4">
+          {totalReviews > 0 && (
+            <div className="flex items-center gap-1 mb-1">
+              <BiStar className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <span className="text-sm font-bold text-white drop-shadow-sm">
+                {rating.toFixed(1)}
+              </span>
+              <span className="text-xs text-slate-300">({totalReviews})</span>
+            </div>
+          )}
+          <h3 className="text-xl font-extrabold leading-tight text-white truncate drop-shadow-sm">
             {name}
           </h3>
         </div>
       </div>
 
-      <div className="p-5 flex items-center justify-between">
+      <div className="flex items-center justify-between p-5">
         <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
-          <BiMapPin className="h-4 w-4 text-[#FF5A1F]" />
-          <span>{distance} km away</span>
+          <BiTime className="h-5 w-5 text-[#FF5A1F]" />
+          <span>{eta}</span>
         </div>
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-50 text-[#FF5A1F] transition-colors group-hover:bg-[#FF5A1F]/10">
           <svg
