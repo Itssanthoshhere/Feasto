@@ -16,7 +16,7 @@ export const utilsService =
 export const realtimeService =
   import.meta.env.VITE_REALTIME_SERVICE_URL || "http://localhost:8004";
 export const riderService =
-  import.meta.env.VITE_RIDE_SERVICE_URL || "http://localhost:8005";
+  import.meta.env.VITE_RIDER_SERVICE_URL || "http://localhost:8005";
 export const adminService =
   import.meta.env.VITE_ADMIN_SERVICE_URL || "http://localhost:8006";
 
