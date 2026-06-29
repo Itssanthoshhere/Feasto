@@ -265,7 +265,7 @@ const Checkout = () => {
   };
 
   const isPayDisabled =
-    !selectedAddressId || loadingRazorpay || loadingStripe || creatingOrder;
+    !selectedAddressId || loadingRazorpay || loadingStripe || creatingOrder || isValidatingPromo;
 
   return (
     <div className="min-h-screen px-4 py-8 bg-slate-50 sm:py-12">

@@ -34,6 +34,7 @@ const PromotionSchema = new Schema<IPromotion>(
       type: Number,
       required: true,
       min: 1,
+      max: 100000,
     },
     isActive: {
       type: Boolean,
@@ -42,6 +43,7 @@ const PromotionSchema = new Schema<IPromotion>(
     minOrderValue: {
       type: Number,
       default: 0,
+      min: 0,
     },
     expiresAt: {
       type: Date,

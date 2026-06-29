@@ -141,17 +141,26 @@ export const createOrder = TryCatch(async (req: AuthenticatedRequest, res) => {
       isActive: true,
     });
 
-    if (promo) {
-      if (!promo.expiresAt || promo.expiresAt > new Date()) {
-        if (promo.minOrderValue === 0 || subtotal >= promo.minOrderValue) {
-          discountAmount =
-            promo.discountType === "percent"
-              ? Math.round((subtotal * promo.discountValue) / 100)
-              : promo.discountValue;
-          totalAmount -= discountAmount;
-        }
-      }
+    if (!promo) {
+      return res.status(400).json({ message: "Invalid or expired promo code" });
     }
+
+    if (promo.expiresAt && promo.expiresAt < new Date()) {
+      return res.status(400).json({ message: "This promo code has expired" });
+    }
+
+    if (promo.minOrderValue > 0 && subtotal < promo.minOrderValue) {
+      return res.status(400).json({
+        message: `Minimum order of ₹${promo.minOrderValue} required for this code`,
+      });
+    }
+
+    const rawDiscount =
+      promo.discountType === "percent"
+        ? Math.round((subtotal * promo.discountValue) / 100)
+        : promo.discountValue;
+    discountAmount = Math.max(0, Math.min(rawDiscount, subtotal));
+    totalAmount -= discountAmount;
   }
 
   const riderAmount = Math.ceil(distance) * 17;

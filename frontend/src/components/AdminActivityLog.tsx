@@ -30,9 +30,11 @@ const AdminActivityLog = ({ logs }: { logs: any[] }) => {
                 key={log._id}
                 className="flex flex-col py-4 border-b border-slate-100 last:border-0 dark:border-slate-700"
               >
-                <div 
-                  className={`flex items-start gap-4 ${log.details ? "cursor-pointer group" : ""}`}
+                <button 
+                  type="button"
+                  className={`flex items-start gap-4 w-full text-left ${log.details ? "cursor-pointer group" : ""}`}
                   onClick={() => log.details && setExpandedId(expandedId === log._id ? null : log._id)}
+                  aria-expanded={log.details ? expandedId === log._id : undefined}
                 >
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 dark:bg-slate-700">
                     {iconMap[log.action] || (
@@ -59,7 +61,7 @@ const AdminActivityLog = ({ logs }: { logs: any[] }) => {
                       ? new Date(log.createdAt).toLocaleString()
                       : "—"}
                   </span>
-                </div>
+                </button>
                 
                 {log.details && expandedId === log._id && (
                   <div className="mt-3 ml-14 rounded-xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-700/50 dark:text-slate-300 border border-slate-100 dark:border-slate-600">

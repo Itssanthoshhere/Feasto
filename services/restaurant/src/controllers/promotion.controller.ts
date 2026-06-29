@@ -19,6 +19,10 @@ export const createPromotion = TryCatch(
         .json({ message: "code, discountType, discountValue are required" });
     }
 
+    if (discountType === "percent" && Number(discountValue) > 100) {
+      return res.status(400).json({ message: "Percent discount cannot exceed 100" });
+    }
+
     const createData: any = {
       restaurantId: user.restaurantId,
       code: String(code).toUpperCase().trim(),
@@ -30,7 +34,17 @@ export const createPromotion = TryCatch(
       createData.expiresAt = new Date(expiresAt);
     }
 
-    const promo = await Promotion.create(createData);
+    let promo;
+    try {
+      promo = await Promotion.create(createData);
+    } catch (err: any) {
+      if (err.code === 11000) {
+        return res
+          .status(409)
+          .json({ message: "A promo with this code already exists for your restaurant" });
+      }
+      throw err;
+    }
 
     return res
       .status(201)
@@ -62,6 +76,10 @@ export const togglePromotion = TryCatch(
       return res.status(403).json({ message: "Unauthorized" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(promoId)) {
+      return res.status(400).json({ message: "Invalid promo ID" });
+    }
+
     const promo = await Promotion.findOne({
       _id: new mongoose.Types.ObjectId(promoId),
       restaurantId: user.restaurantId,
@@ -86,6 +104,10 @@ export const deletePromotion = TryCatch(
 
     if (!user?.restaurantId) {
       return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(promoId)) {
+      return res.status(400).json({ message: "Invalid promo ID" });
     }
 
     await Promotion.deleteOne({
@@ -131,10 +153,11 @@ export const validatePromoCode = TryCatch(async (req, res) => {
     });
   }
 
-  const discount =
+  const rawDiscount =
     promo.discountType === "percent"
       ? Math.round((total * promo.discountValue) / 100)
       : promo.discountValue;
+  const discount = Math.max(0, Math.min(rawDiscount, total));
 
   return res.json({
     valid: true,

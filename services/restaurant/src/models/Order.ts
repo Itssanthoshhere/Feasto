@@ -165,6 +165,9 @@ const OrderSchema = new Schema<IOrder>(
         partialFilterExpression: { paymentStatus: "pending" }
       },
     },
+    estimatedDeliveryTime: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

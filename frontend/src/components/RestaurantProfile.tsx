@@ -76,6 +76,7 @@ const RestaurantProfile = ({ restaurant, isSeller, onUpdate }: props) => {
         },
       );
       setKitchenLoad(load);
+      onUpdate({ ...restaurant, kitchenLoad: load });
       toast.success(data.message);
     } catch (error) {
       toast.error("Failed to update kitchen load");
