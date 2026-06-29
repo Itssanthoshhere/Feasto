@@ -1,26 +1,42 @@
-# 🛵 Feasto — Full-Stack Food Delivery Platform
+<div align="center">
+
+# 🛵 Feasto
+
+### Full-Stack Real-Time Food Delivery Platform
 
 <p>
-  <a href="https://getfeasto.vercel.app/" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-getfeasto.vercel.app-brightgreen?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
-  </a>&nbsp;
-  <a href="https://santhosh-vs-portfolio.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/🌐%20Portfolio-santhosh--vs-black?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" />
-  </a>&nbsp;
-  <a href="https://github.com/Itssanthoshhere" target="_blank">
-    <img src="https://img.shields.io/badge/GitHub-Itssanthoshhere-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
-  </a>
+  <strong>A production-grade microservices food delivery ecosystem built with React, TypeScript, Node.js, RabbitMQ, Socket.IO, MongoDB, and Docker.</strong>
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/React-19.2.6-61DAFB?style=flat-square&logo=react" />
-  <img src="https://img.shields.io/badge/TypeScript-6.x-3178C6?style=flat-square&logo=typescript" />
-  <img src="https://img.shields.io/badge/Node.js-Express_5-339933?style=flat-square&logo=nodedotjs" />
-  <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb" />
-  <img src="https://img.shields.io/badge/RabbitMQ-3.x-FF6600?style=flat-square&logo=rabbitmq" />
-  <img src="https://img.shields.io/badge/Socket.io-4.8-010101?style=flat-square&logo=socketdotio" />
-  <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker" />
+  Connecting <b>Customers</b>, <b>Restaurants</b>, <b>Riders</b>, and <b>Admins</b> through a scalable event-driven architecture inspired by modern delivery platforms like Swiggy and Zomato.
 </p>
+
+<br/>
+
+<a href="https://getfeasto.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/🚀_Live_Demo-Visit_Feasto-success?style=for-the-badge&logo=vercel&logoColor=white" />
+</a>
+
+<a href="https://santhosh-vs-portfolio.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/🌐_Portfolio-Santhosh_VS-black?style=for-the-badge&logo=vercel&logoColor=white" />
+</a>
+
+<a href="https://github.com/Itssanthoshhere" target="_blank">
+  <img src="https://img.shields.io/badge/GitHub-Itssanthoshhere-181717?style=for-the-badge&logo=github&logoColor=white" />
+</a>
+
+
+<img src="https://img.shields.io/badge/Frontend-React_19-61DAFB?style=flat-square&logo=react&logoColor=white" />
+<img src="https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+<img src="https://img.shields.io/badge/Backend-Node.js_+_Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
+<img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" />
+<img src="https://img.shields.io/badge/Messaging-RabbitMQ-FF6600?style=flat-square&logo=rabbitmq&logoColor=white" />
+<img src="https://img.shields.io/badge/Realtime-Socket.IO-010101?style=flat-square&logo=socketdotio&logoColor=white" />
+<img src="https://img.shields.io/badge/Maps-Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white" />
+<img src="https://img.shields.io/badge/Containers-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
+
+</div>
 
 <br/>
 
