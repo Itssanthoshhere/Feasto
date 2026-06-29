@@ -7,6 +7,16 @@ import { restaurantService } from "../main";
 import RestaurantCard from "../components/RestaurantCard";
 import { BiSearch, BiMapAlt } from "react-icons/bi";
 
+const CATEGORIES = [
+  "Indian",
+  "Pizza",
+  "Burger",
+  "Healthy",
+  "Asian",
+  "Dessert",
+  "Sushi",
+];
+
 const Home = () => {
   const { location, loadingLocation } = useAppData();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -141,6 +151,28 @@ const Home = () => {
                 Search
               </button>
             </form>
+
+            {/* Category Chips */}
+            <div className="mt-8 overflow-x-auto no-scrollbar">
+              <div className="flex justify-center gap-3 px-4 pb-2 min-w-max">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setSearchInput(cat);
+                      setSearchParams({ search: cat });
+                    }}
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${
+                      search === cat
+                        ? "bg-[#FF5A1F] text-white shadow-md shadow-[#FF5A1F]/20 scale-105"
+                        : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -177,13 +209,25 @@ const Home = () => {
                   )
                 : null;
 
+              let eta = "N/A";
+              if (distance !== null) {
+                let prepTimeMins = 15;
+                if (res.kitchenLoad === "busy") prepTimeMins = 30;
+                else if (res.kitchenLoad === "very_busy") prepTimeMins = 45;
+                const travelTimeMins = Math.ceil(distance * 3);
+                const totalMins = prepTimeMins + travelTimeMins;
+                eta = `${totalMins - 5}-${totalMins + 5} min`;
+              }
+
               return (
                 <div key={res._id} className="group">
                   <RestaurantCard
                     id={res._id}
                     name={res.name}
                     image={res.image ?? ""}
-                    distance={`${distance}`}
+                    eta={eta}
+                    rating={res.rating || 0}
+                    totalReviews={res.totalReviews || 0}
                     isOpen={res.isOpen}
                   />
                 </div>

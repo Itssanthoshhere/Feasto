@@ -4,6 +4,7 @@ import TryCatch from "../middlewares/trycatch.js";
 import Cart from "../models/cart.js";
 import Restaurant from "../models/Restaurant.js";
 import MenuItem, { IMenuItem } from "../models/MenuItems.js";
+import Order from "../models/Order.js";
 
 export const addToCart = TryCatch(async (req: AuthenticatedRequest, res) => {
   if (!req.user) {
@@ -197,4 +198,62 @@ export const clearCart = TryCatch(async (req: AuthenticatedRequest, res) => {
   res.json({
     message: "Cart cleared successfully",
   });
+});
+
+export const reorder = TryCatch(async (req: AuthenticatedRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Please Login" });
+  }
+
+  const { orderId } = req.body;
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res.status(400).json({ message: "Invalid order ID" });
+  }
+
+  const order = await Order.findOne({ _id: orderId, userId: req.user._id });
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  const restaurant = await Restaurant.findById(order.restaurantId);
+  if (!restaurant || !restaurant.isOpen || !restaurant.isVerified) {
+    return res
+      .status(400)
+      .json({ message: "Restaurant is currently unavailable." });
+  }
+
+  const itemIds = order.items.map(
+    (i: any) => new mongoose.Types.ObjectId(i.itemId),
+  );
+  const availableMenuItems = await MenuItem.find({
+    _id: { $in: itemIds },
+    restaurantId: order.restaurantId,
+    isAvailable: true,
+  });
+
+  const availableItemIds = availableMenuItems.map((i) => i._id.toString());
+  const itemsToAdd = order.items.filter((i: any) =>
+    availableItemIds.includes(i.itemId.toString()),
+  );
+
+  if (itemsToAdd.length === 0) {
+    return res
+      .status(400)
+      .json({
+        message: "None of the items in this order are available right now.",
+      });
+  }
+
+  await Cart.deleteMany({ userId: req.user._id });
+
+  const cartDocs = itemsToAdd.map((item: any) => ({
+    userId: req.user!._id,
+    restaurantId: order.restaurantId,
+    itemId: new mongoose.Types.ObjectId(item.itemId),
+    quantity: item.quantity,
+  }));
+
+  await Cart.insertMany(cartDocs);
+
+  return res.json({ message: "Cart updated for reorder" });
 });

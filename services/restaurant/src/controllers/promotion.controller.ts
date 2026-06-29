@@ -20,7 +20,9 @@ export const createPromotion = TryCatch(
     }
 
     if (discountType === "percent" && Number(discountValue) > 100) {
-      return res.status(400).json({ message: "Percent discount cannot exceed 100" });
+      return res
+        .status(400)
+        .json({ message: "Percent discount cannot exceed 100" });
     }
 
     const createData: any = {
@@ -41,7 +43,10 @@ export const createPromotion = TryCatch(
       if (err.code === 11000) {
         return res
           .status(409)
-          .json({ message: "A promo with this code already exists for your restaurant" });
+          .json({
+            message:
+              "A promo with this code already exists for your restaurant",
+          });
       }
       throw err;
     }
@@ -167,4 +172,23 @@ export const validatePromoCode = TryCatch(async (req, res) => {
     code: promo.code,
     message: `₹${discount} discount applied!`,
   });
+});
+
+export const getActivePromotions = TryCatch(async (req, res) => {
+  const restaurantId = req.params.restaurantId as string;
+
+  if (!restaurantId || !mongoose.Types.ObjectId.isValid(restaurantId)) {
+    return res.status(400).json({ message: "Invalid restaurant ID" });
+  }
+
+  const promotions = await Promotion.find({
+    restaurantId: new mongoose.Types.ObjectId(restaurantId),
+    isActive: true,
+    $or: [
+      { expiresAt: { $exists: false } },
+      { expiresAt: { $gt: new Date() } },
+    ],
+  }).select("-__v -createdAt -updatedAt");
+
+  return res.json({ promotions });
 });
