@@ -41,7 +41,9 @@ const RestaurantPage = () => {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
             }),
-            axios.get(`${restaurantService}/api/promotion/active/${id}`),
+            axios
+              .get(`${restaurantService}/api/promotion/active/${id}`)
+              .catch(() => ({ data: { promotions: [] } })),
           ]);
 
           if (!ignore) {
@@ -226,6 +228,7 @@ const RestaurantPage = () => {
                 value={menuSearch}
                 onChange={(e) => setMenuSearch(e.target.value)}
                 placeholder="Search menu..."
+                aria-label="Search menu items"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF5A1F]/20 focus:border-[#FF5A1F] transition-all"
               />
             </div>
