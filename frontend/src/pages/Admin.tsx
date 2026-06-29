@@ -112,12 +112,24 @@ const Admin = () => {
   // CSV Export Utility
   const exportCSV = (data: any[], filename: string) => {
     if (!data.length) return toast.error("No data to export");
-    const keys = Object.keys(data[0]).filter((k) => k !== "_id" && k !== "__v");
+    const keys = Array.from(new Set(data.flatMap(Object.keys))).filter(
+      (k) => k !== "_id" && k !== "__v",
+    );
     const csv = [
       keys.join(","),
       ...data.map((row) =>
         keys
-          .map((k) => `"${String(row[k] ?? "").replace(/"/g, '""')}"`)
+          .map((k) => {
+            let val = row[k];
+            if (typeof val === "object" && val !== null) {
+              val = JSON.stringify(val);
+            }
+            let strVal = String(val ?? "");
+            if (/^[=+\-@]/.test(strVal)) {
+              strVal = "'" + strVal;
+            }
+            return `"${strVal.replace(/"/g, '""')}"`;
+          })
           .join(","),
       ),
     ].join("\n");
@@ -161,7 +173,7 @@ const Admin = () => {
   const filteredRiders = riders.filter((r) => {
     const matchesSearch =
       r.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.aadhaarNumber?.includes(searchTerm);
+      (r.aadhaarNumber || r.aadharNumber)?.includes(searchTerm);
     const matchesFilter =
       filter === "all"
         ? true

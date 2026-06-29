@@ -179,26 +179,32 @@ export const unverifyRider = TryCatch(async (req, res) => {
 });
 
 export const getAnalytics = TryCatch(async (req, res) => {
-  const [restaurantsCount, onlineRidersCount, orders] = await Promise.all([
+  const orderCol = await getOrderCollection();
+
+  const [
+    restaurantsCount,
+    onlineRidersCount,
+    activeOrdersCount,
+    revenueResult,
+  ] = await Promise.all([
     (await getRestaurantCollection()).countDocuments({ isVerified: true }),
     (await getRiderCollection()).countDocuments({
       isAvailble: true,
       isVerified: true,
     }),
-    (await getOrderCollection()).find({}).toArray(),
+    orderCol.countDocuments({ status: { $nin: ["delivered", "cancelled"] } }),
+    orderCol
+      .aggregate([
+        { $match: { status: "delivered" } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ])
+      .toArray(),
   ]);
 
-  const activeOrders = orders.filter(
-    (o) => o.status !== "delivered" && o.status !== "cancelled",
-  );
-  const deliveredOrders = orders.filter((o) => o.status === "delivered");
-  const totalRevenue = deliveredOrders.reduce(
-    (sum, o) => sum + (o.totalAmount || 0),
-    0,
-  );
+  const totalRevenue = revenueResult[0]?.total || 0;
 
   res.json({
-    activeOrdersCount: activeOrders.length,
+    activeOrdersCount,
     totalRevenue,
     restaurantsCount,
     onlineRidersCount,
@@ -318,8 +324,10 @@ export const dismissNotification = TryCatch(async (req, res) => {
   const { id } = req.params;
   if (typeof id !== "string" || !ObjectId.isValid(id))
     return res.status(400).json({ message: "Invalid id" });
-  await (
+  const result = await (
     await getNotificationCollection()
   ).updateOne({ _id: new ObjectId(id) }, { $set: { read: true } });
+  if (result.matchedCount === 0)
+    return res.status(404).json({ message: "Notification not found" });
   res.json({ message: "Notification dismissed" });
 });
