@@ -73,36 +73,42 @@ export default function LoginScreen() {
       }
 
       // We have an auth code. Now exchange it for an access_token directly on the mobile client.
-      const tokenResult = await AuthSession.exchangeCodeAsync(
-        {
-          clientId: IOS_CLIENT_ID,
-          code: result.params.code,
-          redirectUri,
-          extraParams: {
-            code_verifier: request?.codeVerifier || "",
+      let tokenResult;
+      try {
+        tokenResult = await AuthSession.exchangeCodeAsync(
+          {
+            clientId: IOS_CLIENT_ID,
+            code: result.params.code,
+            redirectUri,
+            extraParams: {
+              code_verifier: request?.codeVerifier || "",
+            },
           },
-        },
-        discovery,
-      );
+          discovery,
+        );
+      } catch (exchangeError: any) {
+        throw new Error(`Code Exchange Failed: ${exchangeError.message || "Unknown error"}`);
+      }
 
       if (!tokenResult.accessToken) {
-        throw new Error("Failed to exchange code for access token.");
+        throw new Error("Failed to retrieve access token from Google.");
       }
 
       // Send access_token to backend — backend fetches user info with it directly
-      const { data } = await authApi.post("/api/auth/mobile-login", {
-        access_token: tokenResult.accessToken,
-      });
+      try {
+        const { data } = await authApi.post("/api/auth/mobile-login", {
+          access_token: tokenResult.accessToken,
+        });
 
-      await setToken(data.token);
-      await loginWithToken(data.token, data.user);
-      router.replace("/(tabs)");
+        await setToken(data.token);
+        await loginWithToken(data.token, data.user);
+        router.replace("/(tabs)");
+      } catch (backendError: any) {
+        const msg = backendError?.response?.data?.message || backendError.message;
+        throw new Error(`Backend Login Failed: ${msg}`);
+      }
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        "Failed to sign in with Google. Please try again.";
-      setError(msg);
+      setError(e?.message || "Failed to sign in with Google. Please try again.");
     } finally {
       setLoading(false);
     }
