@@ -15,15 +15,19 @@ import { useAppData } from "@/context/AppContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Use the WEB client ID — the backend exchanges the auth code using
-// the web client (redirect URI: "postmessage"), not the native iOS client.
+// Web client ID — used for token-based flow on mobile.
+// The backend fetches user info directly via the access_token,
+// so no redirect-URI mismatch occurs.
 const WEB_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ??
-  "928973722294-REPLACE_WITH_WEB_CLIENT_ID.apps.googleusercontent.com";
+  "928973722294-nlnaa96ddbkei6vouieh3p11efbp3atn.apps.googleusercontent.com";
 
+// Google's OAuth discovery document (manually inlined — expo-auth-session
+// doesn't re-export it from the root in SDK 57)
 const discovery = {
   authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenEndpoint: "https://oauth2.googleapis.com/token",
+  revocationEndpoint: "https://oauth2.googleapis.com/revoke",
 };
 
 export default function LoginScreen() {
@@ -32,16 +36,15 @@ export default function LoginScreen() {
   const router = useRouter();
   const { loginWithToken } = useAppData();
 
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: "feasto" });
-
   const [request, , promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: WEB_CLIENT_ID,
       scopes: ["openid", "profile", "email"],
-      redirectUri,
-      responseType: AuthSession.ResponseType.Code,
+      redirectUri: AuthSession.makeRedirectUri({ scheme: "feasto" }),
+      // Token flow: mobile gets access_token directly — no code exchange
+      // needed, so the backend redirect URI ("postmessage") is never involved.
+      responseType: AuthSession.ResponseType.Token,
       prompt: AuthSession.Prompt.SelectAccount,
-      extraParams: { access_type: "offline" },
     },
     discovery,
   );
@@ -56,13 +59,14 @@ export default function LoginScreen() {
         return;
       }
 
-      if (result.type !== "success") {
+      if (result.type !== "success" || !result.params.access_token) {
         setError("Google sign-in was unsuccessful. Please try again.");
         return;
       }
 
-      const { data } = await authApi.post("/api/auth/login", {
-        code: result.params.code,
+      // Send access_token to backend — backend fetches user info with it directly
+      const { data } = await authApi.post("/api/auth/mobile-login", {
+        access_token: result.params.access_token,
       });
 
       await setToken(data.token);

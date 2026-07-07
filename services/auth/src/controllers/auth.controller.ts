@@ -44,6 +44,46 @@ export const loginUser = TryCatch(async (req, res) => {
   });
 });
 
+// Mobile login — accepts an access_token obtained directly by the mobile
+// client (expo-auth-session implicit/token flow). Bypasses code exchange
+// so redirect URI mismatch is never an issue.
+export const mobileLoginUser = TryCatch(async (req, res) => {
+  const { access_token } = req.body;
+
+  if (!access_token) {
+    return res.status(400).json({
+      message: "access_token is required",
+    });
+  }
+
+  const userRes = await axios.get(
+    `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
+  );
+
+  const { email, name, picture } = userRes.data;
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      image: picture || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
+    });
+  }
+
+  const token = jwt.sign({ user }, process.env.JWT_SECRET as string, {
+    expiresIn: "15d",
+  });
+
+  res.status(200).json({
+    message: "Logged In Successfully",
+    token,
+    user,
+  });
+});
+
+
 const allowedRoles = ["customer", "rider", "seller"] as const;
 
 type Role = (typeof allowedRoles)[number];
