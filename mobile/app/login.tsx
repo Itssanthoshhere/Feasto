@@ -6,6 +6,7 @@ import {
   ImageBackground,
   ActivityIndicator,
   Image,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -87,7 +88,9 @@ export default function LoginScreen() {
           discovery,
         );
       } catch (exchangeError: any) {
-        throw new Error(`Code Exchange Failed: ${exchangeError.message || "Unknown error"}`);
+        throw new Error(
+          `Code Exchange Failed: ${exchangeError.message || "Unknown error"}`,
+        );
       }
 
       if (!tokenResult.accessToken) {
@@ -104,11 +107,14 @@ export default function LoginScreen() {
         await loginWithToken(data.token, data.user);
         router.replace("/(tabs)");
       } catch (backendError: any) {
-        const msg = backendError?.response?.data?.message || backendError.message;
+        const msg =
+          backendError?.response?.data?.message || backendError.message;
         throw new Error(`Backend Login Failed: ${msg}`);
       }
     } catch (e: any) {
-      setError(e?.message || "Failed to sign in with Google. Please try again.");
+      setError(
+        e?.message || "Failed to sign in with Google. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -166,6 +172,36 @@ export default function LoginScreen() {
             </Text>
           </View>
         ) : null}
+
+        {/* Dev Bypass section */}
+        <View className="mt-8 pt-8 border-t border-slate-700 w-full items-center">
+          <Text className="text-slate-400 text-xs mb-2">DEVELOPER BYPASS</Text>
+          <TextInput
+            placeholder="Paste web token here..."
+            placeholderTextColor="#64748b"
+            className="w-full bg-slate-800/80 text-white px-4 py-3 rounded-xl mb-3 text-center border border-slate-700"
+            secureTextEntry
+            onChangeText={(text) => {
+              const cleanToken = text.replace(/['"]+/g, "").trim();
+              if (cleanToken.length > 20) {
+                // Auto-login when a long token is pasted
+                setLoading(true);
+                setToken(cleanToken).then(() => {
+                  authApi
+                    .get("/api/auth/me")
+                    .then(({ data }) => {
+                      loginWithToken(cleanToken, data);
+                      router.replace("/(tabs)");
+                    })
+                    .catch(() => {
+                      setError("Invalid bypass token");
+                      setLoading(false);
+                    });
+                });
+              }
+            }}
+          />
+        </View>
 
         {/* Google Login Button */}
         <TouchableOpacity
