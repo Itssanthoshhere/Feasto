@@ -40,16 +40,19 @@ export default function LoginScreen() {
   const router = useRouter();
   const { loginWithToken } = useAppData();
 
+  const redirectUri = AuthSession.makeRedirectUri({ scheme: IOS_SCHEME });
+
   const [request, , promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: IOS_CLIENT_ID,
       scopes: ["openid", "profile", "email"],
       // Reversed client ID scheme — automatically registered as a valid
       // redirect URI for iOS OAuth clients in Google Cloud Console.
-      redirectUri: AuthSession.makeRedirectUri({ scheme: IOS_SCHEME }),
-      responseType: AuthSession.ResponseType.Token,
+      redirectUri,
+      // Google mandates Code flow (with PKCE) for all native app clients.
+      // PKCE is enabled by default in expo-auth-session when using ResponseType.Code
+      responseType: AuthSession.ResponseType.Code,
       prompt: AuthSession.Prompt.SelectAccount,
-      usePKCE: false, // Implicit token flow does not support PKCE
     },
     discovery,
   );
@@ -64,14 +67,31 @@ export default function LoginScreen() {
         return;
       }
 
-      if (result.type !== "success" || !result.params.access_token) {
+      if (result.type !== "success" || !result.params.code) {
         setError("Google sign-in was unsuccessful. Please try again.");
         return;
       }
 
+      // We have an auth code. Now exchange it for an access_token directly on the mobile client.
+      const tokenResult = await AuthSession.exchangeCodeAsync(
+        {
+          clientId: IOS_CLIENT_ID,
+          code: result.params.code,
+          redirectUri,
+          extraParams: {
+            code_verifier: request?.codeVerifier || "",
+          },
+        },
+        discovery,
+      );
+
+      if (!tokenResult.accessToken) {
+        throw new Error("Failed to exchange code for access token.");
+      }
+
       // Send access_token to backend — backend fetches user info with it directly
       const { data } = await authApi.post("/api/auth/mobile-login", {
-        access_token: result.params.access_token,
+        access_token: tokenResult.accessToken,
       });
 
       await setToken(data.token);
@@ -80,6 +100,7 @@ export default function LoginScreen() {
     } catch (e: any) {
       const msg =
         e?.response?.data?.message ||
+        e?.message ||
         "Failed to sign in with Google. Please try again.";
       setError(msg);
     } finally {
