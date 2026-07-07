@@ -193,7 +193,12 @@ export default function LoginScreen() {
                       loginWithToken(cleanToken, data);
                       router.replace("/(tabs)");
                     })
-                    .catch(() => {
+                    .catch((err) => {
+                      console.log(
+                        "BYPASS ERROR:",
+                        err.message,
+                        err.response?.data,
+                      );
                       setError("Invalid bypass token");
                       setLoading(false);
                     });
