@@ -15,12 +15,16 @@ import { useAppData } from "@/context/AppContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Web client ID — used for token-based flow on mobile.
-// The backend fetches user info directly via the access_token,
-// so no redirect-URI mismatch occurs.
-const WEB_CLIENT_ID =
-  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ??
-  "928973722294-nlnaa96ddbkei6vouieh3p11efbp3atn.apps.googleusercontent.com";
+// iOS OAuth client ID — native clients allow custom scheme redirect URIs.
+// The reversed client ID is already registered as a valid redirect URI in
+// Google Cloud Console automatically when using an iOS OAuth client.
+const IOS_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ??
+  "928973722294-1407alv4q298qor8kaqpnj1rib9j7f7l.apps.googleusercontent.com";
+
+// Reversed client ID scheme (the standard iOS OAuth redirect pattern)
+const IOS_SCHEME =
+  "com.googleusercontent.apps.928973722294-1407alv4q298qor8kaqpnj1rib9j7f7l";
 
 // Google's OAuth discovery document (manually inlined — expo-auth-session
 // doesn't re-export it from the root in SDK 57)
@@ -38,11 +42,11 @@ export default function LoginScreen() {
 
   const [request, , promptAsync] = AuthSession.useAuthRequest(
     {
-      clientId: WEB_CLIENT_ID,
+      clientId: IOS_CLIENT_ID,
       scopes: ["openid", "profile", "email"],
-      redirectUri: AuthSession.makeRedirectUri({ scheme: "feasto" }),
-      // Token flow: mobile gets access_token directly — no code exchange
-      // needed, so the backend redirect URI ("postmessage") is never involved.
+      // Reversed client ID scheme — automatically registered as a valid
+      // redirect URI for iOS OAuth clients in Google Cloud Console.
+      redirectUri: AuthSession.makeRedirectUri({ scheme: IOS_SCHEME }),
       responseType: AuthSession.ResponseType.Token,
       prompt: AuthSession.Prompt.SelectAccount,
     },
