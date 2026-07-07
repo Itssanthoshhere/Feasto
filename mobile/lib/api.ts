@@ -1,21 +1,22 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 
 // ─── Service URLs ───────────────────────────────────────────────────────────
-export const AUTH_SERVICE_URL = 'https://feasto-auth.onrender.com';
-export const RESTAURANT_SERVICE_URL = 'https://feasto-restaurant.onrender.com';
-export const UTILS_SERVICE_URL = 'https://feasto-utils.onrender.com';
-export const REALTIME_SERVICE_URL = 'wss://feasto-realtime.onrender.com';
+export const AUTH_SERVICE_URL = process.env.EXPO_PUBLIC_AUTH_URL || 'https://feasto-auth.onrender.com';
+export const RESTAURANT_SERVICE_URL = process.env.EXPO_PUBLIC_RESTAURANT_URL || 'https://feasto-restaurant.onrender.com';
+export const UTILS_SERVICE_URL = process.env.EXPO_PUBLIC_UTILS_URL || 'https://feasto-utils.onrender.com';
+export const REALTIME_SERVICE_URL = process.env.EXPO_PUBLIC_REALTIME_URL || 'wss://feasto-realtime.onrender.com';
 
 // ─── Token helpers ───────────────────────────────────────────────────────────
-export const getToken = () => AsyncStorage.getItem('token');
-export const setToken = (t: string) => AsyncStorage.setItem('token', t);
-export const removeToken = () => AsyncStorage.removeItem('token');
+export const getToken = () => SecureStore.getItemAsync('token');
+export const setToken = (t: string) => SecureStore.setItemAsync('token', t);
+export const removeToken = () => SecureStore.deleteItemAsync('token');
 
 // ─── Axios instances ─────────────────────────────────────────────────────────
-export const authApi = axios.create({ baseURL: AUTH_SERVICE_URL });
-export const restaurantApi = axios.create({ baseURL: RESTAURANT_SERVICE_URL });
-export const utilsApi = axios.create({ baseURL: UTILS_SERVICE_URL });
+const TIMEOUT = 15000;
+export const authApi = axios.create({ baseURL: AUTH_SERVICE_URL, timeout: TIMEOUT });
+export const restaurantApi = axios.create({ baseURL: RESTAURANT_SERVICE_URL, timeout: TIMEOUT });
+export const utilsApi = axios.create({ baseURL: UTILS_SERVICE_URL, timeout: TIMEOUT });
 
 // Attach token to every request
 [authApi, restaurantApi, utilsApi].forEach((instance) => {

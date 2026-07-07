@@ -13,17 +13,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Phone, Store, MapPin, Package } from "lucide-react-native";
 import { restaurantApi } from "@/lib/api";
 import type { IOrder } from "@/lib/types";
-import {
-  ACTIVE_STATUSES,
-  STATUS_FLOW,
-  STATUS_META,
-} from "@/lib/orderConstants";
+import { getOrderStatus, STATUS_FLOW } from "@/lib/orderConstants";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [order, setOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   // itemId -> image URL map, fetched from menu
   const [menuImages, setMenuImages] = useState<Record<string, string>>({});
 
@@ -50,8 +47,12 @@ export default function OrderDetailScreen() {
           /* images optional */
         }
       }
-    } catch {
-      /* ignore */
+    } catch (e: any) {
+      if (e?.response?.status === 404) {
+        setOrder(null);
+      } else {
+        setError(e?.response?.data?.message || 'Failed to fetch order');
+      }
     } finally {
       setLoading(false);
     }
@@ -71,6 +72,37 @@ export default function OrderDetailScreen() {
         >
           Loading your order...
         </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center px-6">
+        <Text className="text-4xl mb-4">⚠️</Text>
+        <Text
+          className="text-xl text-slate-800 text-center"
+          style={{ fontFamily: "Outfit_700Bold" }}
+        >
+          Oops, something went wrong
+        </Text>
+        <Text
+          className="text-slate-400 text-sm text-center mt-2"
+          style={{ fontFamily: "Outfit_400Regular" }}
+        >
+          {error}
+        </Text>
+        <TouchableOpacity
+          onPress={() => { setError(null); setLoading(true); fetchOrder(); }}
+          className="mt-5 bg-[#FF5A1F] px-6 py-3 rounded-xl"
+        >
+          <Text
+            className="text-white"
+            style={{ fontFamily: "Outfit_600SemiBold" }}
+          >
+            Try Again
+          </Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -106,10 +138,7 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const meta = STATUS_META[order.status] || STATUS_META.placed;
-  const isActive = ACTIVE_STATUSES.includes(order.status);
-  const stepIndex = STATUS_FLOW.indexOf(order.status);
-  const isCancelled = order.status === "cancelled";
+  const { meta, isActive, stepIndex, isCancelled } = getOrderStatus(order.status);
 
   const orderTime = order.createdAt
     ? new Date(order.createdAt).toLocaleTimeString("en-IN", {
@@ -340,9 +369,9 @@ export default function OrderDetailScreen() {
             >
               <View className="bg-white rounded-[22px] p-4 flex-row items-center gap-3">
                 <View className="w-14 h-14 rounded-full bg-violet-100 items-center justify-center border-2 border-violet-200 overflow-hidden">
-                  {(order as any).riderPicture ? (
+                  {order.riderPicture ? (
                     <Image
-                      source={{ uri: (order as any).riderPicture }}
+                      source={{ uri: order.riderPicture }}
                       className="w-full h-full"
                       resizeMode="cover"
                     />
@@ -394,8 +423,8 @@ export default function OrderDetailScreen() {
             {/* Items */}
             <View className="gap-3">
               {order.items.map((item, idx) => {
-                const imgUri = (item as any).itemId
-                  ? menuImages[(item as any).itemId]
+                const imgUri = item.itemId
+                  ? menuImages[item.itemId]
                   : item.image;
                 return (
                   <View key={idx} className="flex-row items-center gap-3">
@@ -552,12 +581,12 @@ export default function OrderDetailScreen() {
                         : "PENDING"}
                   </Text>
                 </View>
-                {(order as any).paymentMethod && (
+                {order.paymentMethod && (
                   <Text
                     className="text-xs text-slate-400 capitalize"
                     style={{ fontFamily: "Outfit_500Medium" }}
                   >
-                    via {(order as any).paymentMethod}
+                    via {order.paymentMethod}
                   </Text>
                 )}
               </View>

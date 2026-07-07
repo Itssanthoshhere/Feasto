@@ -144,7 +144,11 @@ export default function CheckoutScreen() {
 
       if (stripeData.url) {
         // Open Stripe checkout in browser — works in Expo Go without native build
-        await Linking.openURL(stripeData.url);
+        try {
+          await Linking.openURL(stripeData.url);
+        } catch (linkErr) {
+          Alert.alert("Error", "Could not open payment page.");
+        }
         // Clear cart after opening payment
         await fetchCart();
       } else {

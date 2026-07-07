@@ -53,6 +53,7 @@ export type ICart = {
 };
 
 export type IOrderItem = {
+  itemId?: string;
   name: string;
   quantity: number;
   price: number;
@@ -64,13 +65,19 @@ export type IOrder = {
   restaurantName: string;
   restaurantId: string;
   items: IOrderItem[];
+  subtotal?: number;
+  deliveryFee?: number;
+  discountAmount?: number;
   totalAmount: number;
   status: import('./orderConstants').OrderStatus;
   paymentStatus: 'pending' | 'paid' | 'failed';
-  createdAt: Date;
+  paymentMethod?: string;
+  createdAt: string;
   riderName?: string;
   riderPhone?: string;
+  riderPicture?: string;
   deliveryAddress?: {
     formattedAddress: string;
+    mobile?: number;
   };
 };

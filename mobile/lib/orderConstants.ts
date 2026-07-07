@@ -96,3 +96,11 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
     borderColor: '#FCA5A5',
   },
 };
+
+export const getOrderStatus = (status: OrderStatus) => {
+  const meta = STATUS_META[status] || STATUS_META.placed;
+  const isCancelled = status === 'cancelled';
+  const isActive = ACTIVE_STATUSES.includes(status);
+  const stepIndex = STATUS_FLOW.indexOf(status);
+  return { meta, isCancelled, isActive, stepIndex };
+};

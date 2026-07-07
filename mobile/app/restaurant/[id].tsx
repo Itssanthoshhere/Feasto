@@ -20,26 +20,35 @@ export default function RestaurantScreen() {
   const [promotions, setPromotions] = useState<IPromotion[]>([]);
   const [menuSearch, setMenuSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchRestaurantData = () => {
     if (!id) return;
-    let ignore = false;
     setLoading(true);
+    setError(null);
 
     Promise.all([
       restaurantApi.get(`/api/restaurant/${id}`),
       restaurantApi.get(`/api/item/all/${id}`),
       restaurantApi.get(`/api/promotion/active/${id}`).catch(() => ({ data: { promotions: [] } })),
     ]).then(([restRes, menuRes, promoRes]) => {
-      if (!ignore) {
-        setRestaurant(restRes.data || null);
-        setMenuItems(menuRes.data || []);
-        setPromotions(promoRes.data.promotions || []);
+      setRestaurant(restRes.data || null);
+      setMenuItems(menuRes.data || []);
+      setPromotions(promoRes.data.promotions || []);
+    }).catch((e: any) => {
+      if (e?.response?.status === 404) {
+        setRestaurant(null);
+      } else {
+        setError(e?.response?.data?.message || 'Failed to fetch restaurant data');
       }
-    }).catch(() => {}).finally(() => { if (!ignore) setLoading(false); });
+    }).finally(() => {
+      setLoading(false);
+    });
+  };
 
-    return () => { ignore = true; };
+  useEffect(() => {
+    fetchRestaurantData();
   }, [id]);
 
   const filtered = menuItems.filter((item) => {
@@ -68,6 +77,23 @@ export default function RestaurantScreen() {
     );
   }
 
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center px-6">
+        <Text className="text-4xl mb-4">⚠️</Text>
+        <Text className="text-xl text-slate-800 text-center mb-2" style={{ fontFamily: 'Outfit_700Bold' }}>
+          Failed to load
+        </Text>
+        <Text className="text-slate-500 text-center text-sm" style={{ fontFamily: 'Outfit_400Regular' }}>
+          {error}
+        </Text>
+        <TouchableOpacity onPress={fetchRestaurantData} className="mt-5 bg-[#FF5A1F] px-6 py-3 rounded-xl">
+          <Text className="text-white" style={{ fontFamily: 'Outfit_600SemiBold' }}>Try Again</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   if (!restaurant) {
     return (
       <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center px-6">
@@ -75,7 +101,7 @@ export default function RestaurantScreen() {
         <Text className="text-xl text-slate-800 text-center" style={{ fontFamily: 'Outfit_700Bold' }}>
           Restaurant not found
         </Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-5 bg-[#FF5A1F] px-6 py-3 rounded-xl">
+        <TouchableOpacity onPress={() => router.back()} className="mt-5 bg-slate-800 px-6 py-3 rounded-xl">
           <Text className="text-white" style={{ fontFamily: 'Outfit_600SemiBold' }}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>

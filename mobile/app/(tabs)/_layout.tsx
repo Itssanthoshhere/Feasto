@@ -14,10 +14,10 @@ export default function TabLayout() {
     }
   }, [loading, isAuth]);
 
-  if (loading) {
+  if (loading || !isAuth) {
     return (
       <View className="flex-1 items-center justify-center bg-slate-50">
-        <ActivityIndicator size="large" color="#FF5A1F" />
+        {loading && <ActivityIndicator size="large" color="#FF5A1F" />}
       </View>
     );
   }

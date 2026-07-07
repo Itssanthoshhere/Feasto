@@ -10,7 +10,6 @@
       "com.googleusercontent.apps.928973722294-1407alv4q298qor8kaqpnj1rib9j7f7l"
     ],
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.feasto.app",
@@ -50,7 +49,7 @@
       "expo-font",
       "expo-web-browser",
       "expo-location",
-      "@react-native-google-signin/google-signin"
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

@@ -208,7 +208,12 @@ export default function AddressScreen() {
 
             <View className="flex-row gap-3">
               <TouchableOpacity
-                onPress={() => setShowForm(false)}
+                onPress={() => {
+                  setShowForm(false);
+                  setLat(null);
+                  setLng(null);
+                  setAddressText('');
+                }}
                 className="flex-1 border border-slate-200 rounded-2xl py-3.5 items-center"
               >
                 <Text className="text-slate-600" style={{ fontFamily: 'Outfit_600SemiBold' }}>Cancel</Text>

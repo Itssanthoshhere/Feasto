@@ -93,11 +93,11 @@ export default function LoginScreen() {
           {loading ? (
             <ActivityIndicator color="#FF5A1F" />
           ) : (
-            <Image
-              source={require("@/assets/images/google_icon.png")}
-              style={{ width: 24, height: 24 }}
-              resizeMode="contain"
-            />
+          <Image
+            source={require("@/assets/images/google_icon.png")}
+            style={{ width: 24, height: 24 }}
+            resizeMode="contain"
+          />
           )}
           <Text
             className="text-slate-900 text-lg"

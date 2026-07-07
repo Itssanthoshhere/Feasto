@@ -30,6 +30,7 @@ type AppContextType = {
   setIsAuth: (v: boolean) => void;
   setLocation: (l: LocationData | null) => void;
   setCity: (c: string) => void;
+  updateLocation: (loc: LocationData, cityName: string) => Promise<void>;
   fetchCart: () => Promise<void>;
   logout: () => Promise<void>;
   loginWithToken: (token: string, user: User) => Promise<void>;
@@ -119,14 +120,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         parts.length > 0 ? parts.join(", ") : "Current Location";
 
       const loc: LocationData = { latitude, longitude, formattedAddress };
-      setLocation(loc);
-      setCity(detectedCity);
-      await AsyncStorage.setItem("userLocation", JSON.stringify(loc));
-      await AsyncStorage.setItem("userCity", detectedCity);
+      await updateLocation(loc, detectedCity);
     } catch {
       setCity("Failed to load");
     } finally {
       setLoadingLocation(false);
+    }
+  }
+
+  // ─── Update Location ──────────────────────────────────────────────────────
+  async function updateLocation(loc: LocationData, cityName: string) {
+    setLocation(loc);
+    setCity(cityName);
+    try {
+      await AsyncStorage.setItem("userLocation", JSON.stringify(loc));
+      await AsyncStorage.setItem("userCity", cityName);
+    } catch {
+      // Ignore async storage errors
     }
   }
 
@@ -173,6 +183,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setIsAuth,
         setLocation,
         setCity,
+        updateLocation,
         fetchCart,
         logout,
         loginWithToken,

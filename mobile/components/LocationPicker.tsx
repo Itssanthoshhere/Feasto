@@ -22,7 +22,7 @@ interface Props {
 }
 
 export default function LocationPicker({ visible, onClose }: Props) {
-  const { setLocation, setCity } = useAppData();
+  const { updateLocation } = useAppData();
 
   const [manualText, setManualText] = useState("");
   const [searching, setSearching] = useState(false);
@@ -42,7 +42,10 @@ export default function LocationPicker({ visible, onClose }: Props) {
         );
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({});
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 5000,
+      });
       const { latitude, longitude } = pos.coords;
 
       const res = await fetch(
@@ -59,10 +62,7 @@ export default function LocationPicker({ visible, onClose }: Props) {
         geo.city || geo.locality || geo.principalSubdivision || "Your Location";
 
       const loc = { latitude, longitude, formattedAddress };
-      setLocation(loc);
-      setCity(cityName);
-      await AsyncStorage.setItem("userLocation", JSON.stringify(loc));
-      await AsyncStorage.setItem("userCity", cityName);
+      await updateLocation(loc, cityName);
       onClose();
     } catch {
       Alert.alert("Error", "Could not detect location. Please try manually.");
@@ -78,6 +78,7 @@ export default function LocationPicker({ visible, onClose }: Props) {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(manualText)}&format=json&limit=5&addressdetails=1`,
+        { headers: { 'User-Agent': 'FeastoApp/1.0.0 (Expo)' } }
       );
       const data = await res.json();
       setResults(data);
@@ -99,10 +100,7 @@ export default function LocationPicker({ visible, onClose }: Props) {
     const cityName = parts[0] || "Your Location";
 
     const loc = { latitude, longitude, formattedAddress: item.display_name };
-    setLocation(loc);
-    setCity(cityName);
-    await AsyncStorage.setItem("userLocation", JSON.stringify(loc));
-    await AsyncStorage.setItem("userCity", cityName);
+    await updateLocation(loc, cityName);
     setResults([]);
     setManualText("");
     onClose();

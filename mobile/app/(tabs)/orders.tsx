@@ -10,7 +10,7 @@ import { useAppData } from '@/context/AppContext';
 import { restaurantApi } from '@/lib/api';
 import type { IOrder } from '@/lib/types';
 import {
-  ACTIVE_STATUSES, STATUS_FLOW, STATUS_META,
+  ACTIVE_STATUSES, STATUS_FLOW, getOrderStatus,
 } from '@/lib/orderConstants';
 
 type Tab = 'active' | 'completed';
@@ -22,6 +22,7 @@ export default function OrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('active');
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -43,18 +44,19 @@ export default function OrdersScreen() {
 
   const handleReorder = async (orderId: string) => {
     try {
-      setLoading(true);
+      setReorderingId(orderId);
       await restaurantApi.post('/api/cart/reorder', { orderId });
       await fetchCart();
       router.push('/(tabs)/cart');
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.message || 'Failed to reorder');
     } finally {
-      setLoading(false);
+      setReorderingId(null);
     }
   };
 
-  const timeAgo = (date: Date) => {
+  const timeAgo = (dateStr: string | Date) => {
+    const date = new Date(dateStr);
     const diff = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
     if (diff < 60) return 'Just now';
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -186,9 +188,7 @@ export default function OrdersScreen() {
           )
         }
         renderItem={({ item: order }) => {
-          const meta = STATUS_META[order.status] || STATUS_META.placed;
-          const stepIndex = STATUS_FLOW.indexOf(order.status);
-          const isActive = ACTIVE_STATUSES.includes(order.status);
+          const { meta, stepIndex, isActive } = getOrderStatus(order.status);
           const totalQty = order.items.reduce((s, i) => s + i.quantity, 0);
           const itemsSummary = order.items.slice(0, 2).map((i) => i.name).join(', ');
 
@@ -251,11 +251,16 @@ export default function OrdersScreen() {
                         </View>
                         <TouchableOpacity
                           onPress={(e) => { e.stopPropagation?.(); handleReorder(order._id); }}
-                          className="bg-slate-100 px-3 py-1 rounded-lg"
+                          disabled={reorderingId === order._id}
+                          className={`px-3 py-1 rounded-lg ${reorderingId === order._id ? 'bg-slate-200' : 'bg-slate-100'}`}
                         >
-                          <Text className="text-xs text-slate-700" style={{ fontFamily: 'Outfit_600SemiBold' }}>
-                            Reorder
-                          </Text>
+                          {reorderingId === order._id ? (
+                            <ActivityIndicator size="small" color="#64748b" />
+                          ) : (
+                            <Text className="text-xs text-slate-700" style={{ fontFamily: 'Outfit_600SemiBold' }}>
+                              Reorder
+                            </Text>
+                          )}
                         </TouchableOpacity>
                       </View>
                       <Text className="text-base" style={{ fontFamily: 'Outfit_800ExtraBold', color: '#0f172a' }}>

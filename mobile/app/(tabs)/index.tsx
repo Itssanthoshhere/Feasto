@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -55,15 +55,19 @@ export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const requestTokenRef = useRef(0);
 
   const fetchRestaurants = useCallback(
     async (q = search) => {
+      const token = ++requestTokenRef.current;
       if (!location) {
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
+        setError(null);
         const { data } = await restaurantApi.get("/api/restaurant/all", {
           params: {
             latitude: location.latitude,
@@ -71,12 +75,18 @@ export default function HomeScreen() {
             search: q,
           },
         });
-        setRestaurants(data.restaurants ?? []);
-      } catch {
-        /* ignore */
+        if (token === requestTokenRef.current) {
+          setRestaurants(data.restaurants ?? []);
+        }
+      } catch (e: any) {
+        if (token === requestTokenRef.current) {
+          setError(e?.response?.data?.message || "Failed to fetch restaurants");
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (token === requestTokenRef.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [location, search],
@@ -202,6 +212,47 @@ export default function HomeScreen() {
             Finding restaurants near you...
           </Text>
         </View>
+      ) : error ? (
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#FF5A1F"
+            />
+          }
+          contentContainerStyle={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <Text className="text-4xl mb-4">⚠️</Text>
+          <Text
+            className="text-xl text-slate-800 text-center mb-2"
+            style={{ fontFamily: "Outfit_700Bold" }}
+          >
+            Failed to load
+          </Text>
+          <Text
+            className="text-slate-500 text-center"
+            style={{ fontFamily: "Outfit_400Regular" }}
+          >
+            {error}
+          </Text>
+          <TouchableOpacity
+            onPress={() => fetchRestaurants()}
+            className="mt-5 bg-slate-100 px-6 py-3 rounded-xl"
+          >
+            <Text
+              className="text-slate-700"
+              style={{ fontFamily: "Outfit_600SemiBold" }}
+            >
+              Try Again
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       ) : restaurants.length === 0 ? (
         <ScrollView
           refreshControl={
