@@ -7,10 +7,10 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useStripe } from "@stripe/stripe-react-native";
 import {
   ArrowLeft,
   MapPin,
@@ -114,6 +114,8 @@ export default function CheckoutScreen() {
     }
   };
 
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
   const placeOrder = async () => {
     if (!selectedAddressId) {
       Alert.alert(
@@ -124,7 +126,7 @@ export default function CheckoutScreen() {
     }
     setPlacingOrder(true);
     try {
-      // Step 1: Create the order (same as web)
+      // Step 1: Create the order
       const { data: orderData } = await restaurantApi.post("/api/order/new", {
         paymentMethod: "stripe",
         addressId: selectedAddressId,
@@ -134,25 +136,38 @@ export default function CheckoutScreen() {
 
       const { orderId } = orderData;
 
-      // Step 2: Create Stripe payment session
-      const { data: stripeData } = await utilsApi.post(
-        "/api/payment/stripe/create",
-        {
-          orderId,
-        },
+      // Step 2: Create Stripe payment intent
+      const { data: intentData } = await utilsApi.post(
+        "/api/payment/stripe/intent",
+        { orderId },
       );
 
-      if (stripeData.url) {
-        // Open Stripe checkout in browser — works in Expo Go without native build
-        try {
-          await Linking.openURL(stripeData.url);
-        } catch (linkErr) {
-          Alert.alert("Error", "Could not open payment page.");
-        }
-        // Clear cart after opening payment
-        await fetchCart();
+      // Step 3: Initialize PaymentSheet
+      const { error: initError } = await initPaymentSheet({
+        merchantDisplayName: "Feasto",
+        paymentIntentClientSecret: intentData.clientSecret,
+        returnURL: "feasto://stripe-redirect",
+      });
+
+      if (initError) {
+        Alert.alert("Payment Error", initError.message);
+        setPlacingOrder(false);
+        return;
+      }
+
+      // Step 4: Present PaymentSheet
+      const { error: paymentError } = await presentPaymentSheet();
+
+      if (paymentError) {
+        Alert.alert(`Payment failed`, paymentError.message);
       } else {
-        Alert.alert("Payment Error", "Could not create payment session.");
+        // Step 5: Verify payment on backend
+        await utilsApi.post("/api/payment/stripe/verify-intent", {
+          paymentIntentId: intentData.clientSecret.split("_secret_")[0],
+          orderId,
+        });
+        await fetchCart();
+        router.replace("/ordersuccess" as any);
       }
     } catch (e: any) {
       Alert.alert(

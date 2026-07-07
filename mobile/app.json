@@ -49,7 +49,20 @@
       "expo-font",
       "expo-web-browser",
       "expo-location",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.feasto.app",
+          "enableGooglePay": false
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "googleMapsApiKey": ""
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

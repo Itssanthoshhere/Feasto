@@ -210,3 +210,63 @@ export const verifyStripePayment = async (req: Request, res: Response) => {
     });
   }
 };
+
+// ── Native PaymentSheet (mobile) ─────────────────────────────────────────────
+export const createPaymentIntent = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId)
+      return res.status(400).json({ message: "orderId is required" });
+    const { data } = await axios.get(
+      `${process.env.RESTAURANT_SERVICE}/api/order/payment/${orderId}`,
+      { headers: { "x-internal-key": process.env.INTERNAL_SERVICE_KEY } },
+    );
+    if (data.paymentStatus === "paid") {
+      return res.status(400).json({ message: "Order already paid" });
+    }
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: data.amount * 100,
+      currency: "inr",
+      metadata: { orderId },
+      automatic_payment_methods: { enabled: true },
+    });
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    });
+  } catch (error) {
+    console.error("createPaymentIntent error:", error);
+    res.status(500).json({ message: "Failed to create payment intent" });
+  }
+};
+
+export const verifyPaymentIntent = async (req: Request, res: Response) => {
+  try {
+    const { paymentIntentId, orderId } = req.body;
+    if (!paymentIntentId || !orderId) {
+      return res
+        .status(400)
+        .json({ message: "paymentIntentId and orderId required" });
+    }
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (intent.status !== "succeeded") {
+      return res.status(400).json({ message: "Payment not completed" });
+    }
+    const { data: order } = await axios.get(
+      `${process.env.RESTAURANT_SERVICE}/api/order/payment/${orderId}`,
+      { headers: { "x-internal-key": process.env.INTERNAL_SERVICE_KEY } },
+    );
+    if (order.paymentStatus === "paid") {
+      return res.json({ message: "Payment already verified" });
+    }
+    await publishPaymentSuccess({
+      orderId,
+      paymentId: paymentIntentId,
+      provider: "stripe",
+    });
+    res.json({ message: "Payment verified successfully" });
+  } catch (error) {
+    console.error("verifyPaymentIntent error:", error);
+    res.status(500).json({ message: "Failed to verify payment" });
+  }
+};

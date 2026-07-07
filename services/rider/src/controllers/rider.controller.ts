@@ -401,11 +401,25 @@ export const updateRiderLocation = TryCatch(
         .json({ message: "Missing location or order data" });
     }
 
+    // Fetch order details to get userId
+    const { data: order } = await axios.get(
+      `${process.env.RESTAURANT_SERVICE}/api/order/payment/${orderId}`,
+      {
+        headers: {
+          "x-internal-key": process.env.INTERNAL_SERVICE_KEY,
+        },
+      },
+    );
+
+    if (!order || !order.userId) {
+       return res.status(404).json({ message: "Order not found" });
+    }
+
     await axios.post(
       `${process.env.REALTIME_SERVICE}/api/v1/internal/emit`,
       {
         event: "rider:location",
-        room: `user:${orderId}`,
+        room: `user:${order.userId}`,
         payload: { latitude, longitude },
       },
       {

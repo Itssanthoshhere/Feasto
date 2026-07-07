@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo-google-fonts/outfit": "^0.4.3",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@stripe/stripe-react-native": "^0.68.0",
     "axios": "^1.18.1",
     "expo": "~57.0.2",
     "expo-auth-session": "~57.0.1",
@@ -25,12 +26,14 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-maps": "^1.29.0",
     "react-native-reanimated": "^4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.10.0",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^3.4.19",
     "zustand": "^5.0.14"
   },

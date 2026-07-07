@@ -11,9 +11,11 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Phone, Store, MapPin, Package } from "lucide-react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import { restaurantApi } from "@/lib/api";
 import type { IOrder } from "@/lib/types";
 import { getOrderStatus, STATUS_FLOW } from "@/lib/orderConstants";
+import { useRiderSocket } from "@/hooks/useRiderSocket";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,6 +25,10 @@ export default function OrderDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   // itemId -> image URL map, fetched from menu
   const [menuImages, setMenuImages] = useState<Record<string, string>>({});
+
+  const isRiderActive =
+    order?.status === "rider_assigned" || order?.status === "picked_up";
+  const liveRiderLoc = useRiderSocket(id as string, isRiderActive);
 
   const fetchOrder = async () => {
     try {
@@ -51,7 +57,7 @@ export default function OrderDetailScreen() {
       if (e?.response?.status === 404) {
         setOrder(null);
       } else {
-        setError(e?.response?.data?.message || 'Failed to fetch order');
+        setError(e?.response?.data?.message || "Failed to fetch order");
       }
     } finally {
       setLoading(false);
@@ -93,7 +99,11 @@ export default function OrderDetailScreen() {
           {error}
         </Text>
         <TouchableOpacity
-          onPress={() => { setError(null); setLoading(true); fetchOrder(); }}
+          onPress={() => {
+            setError(null);
+            setLoading(true);
+            fetchOrder();
+          }}
           className="mt-5 bg-[#FF5A1F] px-6 py-3 rounded-xl"
         >
           <Text
@@ -138,7 +148,9 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const { meta, isActive, stepIndex, isCancelled } = getOrderStatus(order.status);
+  const { meta, isActive, stepIndex, isCancelled } = getOrderStatus(
+    order.status,
+  );
 
   const orderTime = order.createdAt
     ? new Date(order.createdAt).toLocaleTimeString("en-IN", {
@@ -297,6 +309,58 @@ export default function OrderDetailScreen() {
               )}
           </View>
         </View>
+
+        {/* ── Live Tracking Map ── */}
+        {isRiderActive &&
+          (order.deliveryAddress as any)?.latitude &&
+          (order.deliveryAddress as any)?.longitude && (
+            <View className="h-64 rounded-3xl overflow-hidden border border-slate-200 shadow-sm mt-2">
+              <MapView
+                className="w-full h-full"
+                initialRegion={{
+                  latitude: (order.deliveryAddress as any).latitude,
+                  longitude: (order.deliveryAddress as any).longitude,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
+                }}
+                region={
+                  liveRiderLoc
+                    ? {
+                        latitude: liveRiderLoc.latitude,
+                        longitude: liveRiderLoc.longitude,
+                        latitudeDelta: 0.02,
+                        longitudeDelta: 0.02,
+                      }
+                    : undefined
+                }
+              >
+                {/* Delivery Address Pin */}
+                <Marker
+                  coordinate={{
+                    latitude: (order.deliveryAddress as any).latitude,
+                    longitude: (order.deliveryAddress as any).longitude,
+                  }}
+                  title="Delivery Address"
+                >
+                  <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center border-2 border-white shadow-md">
+                    <Text className="text-xl">📍</Text>
+                  </View>
+                </Marker>
+
+                {/* Live Rider Pin */}
+                {liveRiderLoc && (
+                  <Marker
+                    coordinate={liveRiderLoc}
+                    title={order.riderName || "Rider"}
+                  >
+                    <View className="w-12 h-12 rounded-full bg-violet-100 items-center justify-center border-2 border-white shadow-md">
+                      <Text className="text-2xl">🏍️</Text>
+                    </View>
+                  </Marker>
+                )}
+              </MapView>
+            </View>
+          )}
 
         {/* ── Info Cards Row ── */}
         <View className="flex-row gap-3">
