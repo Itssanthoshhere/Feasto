@@ -62,6 +62,10 @@ export default function RootLayout() {
             name="address"
             options={{ title: "Manage Addresses", headerShown: false }}
           />
+          <Stack.Screen
+            name="ordersuccess"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </AppProvider>
     </StripeProvider>
