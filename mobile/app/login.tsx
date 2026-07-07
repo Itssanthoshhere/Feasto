@@ -49,6 +49,7 @@ export default function LoginScreen() {
       redirectUri: AuthSession.makeRedirectUri({ scheme: IOS_SCHEME }),
       responseType: AuthSession.ResponseType.Token,
       prompt: AuthSession.Prompt.SelectAccount,
+      usePKCE: false, // Implicit token flow does not support PKCE
     },
     discovery,
   );
