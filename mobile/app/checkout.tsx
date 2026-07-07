@@ -103,7 +103,7 @@ export default function CheckoutScreen() {
       const { data } = await restaurantApi.post("/api/promotion/validate", {
         code: promoCode.trim(),
         restaurantId: restaurant._id,
-        subtotal: subTotal,
+        orderTotal: subTotal,
       });
       setAppliedPromo(promoCode.trim().toUpperCase());
       setDiscountAmount(data.discountAmount || 0);
