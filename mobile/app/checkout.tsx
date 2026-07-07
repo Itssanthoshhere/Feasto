@@ -31,6 +31,7 @@ interface Address {
 export default function CheckoutScreen() {
   const { cart, subTotal, quantity, fetchCart } = useAppData();
   const router = useRouter();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -113,8 +114,6 @@ export default function CheckoutScreen() {
       setValidatingPromo(false);
     }
   };
-
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const placeOrder = async () => {
     if (!selectedAddressId) {
