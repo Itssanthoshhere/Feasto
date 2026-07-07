@@ -6,13 +6,25 @@ import {
   ImageBackground,
   ActivityIndicator,
   Image,
-  // Platform,
-  // TextInput,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-// import { authApi, setToken } from "@/lib/api";
+import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from "expo-auth-session";
+import { authApi, setToken } from "@/lib/api";
 import { useAppData } from "@/context/AppContext";
+
+WebBrowser.maybeCompleteAuthSession();
+
+// Use the WEB client ID — the backend exchanges the auth code using
+// the web client (redirect URI: "postmessage"), not the native iOS client.
+const WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ??
+  "928973722294-REPLACE_WITH_WEB_CLIENT_ID.apps.googleusercontent.com";
+
+const discovery = {
+  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
+  tokenEndpoint: "https://oauth2.googleapis.com/token",
+};
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
@@ -20,13 +32,50 @@ export default function LoginScreen() {
   const router = useRouter();
   const { loginWithToken } = useAppData();
 
+  const redirectUri = AuthSession.makeRedirectUri({ scheme: "feasto" });
+
+  const [request, , promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: WEB_CLIENT_ID,
+      scopes: ["openid", "profile", "email"],
+      redirectUri,
+      responseType: AuthSession.ResponseType.Code,
+      prompt: AuthSession.Prompt.SelectAccount,
+      extraParams: { access_type: "offline" },
+    },
+    discovery,
+  );
+
   const handleGoogleLogin = async () => {
-    Alert.alert(
-      // "Native Google Sign-In Required",
-      // "Because we upgraded to the native Google SDK, this button doesn't work in Expo Go.\n\nPlease use the 'Developer Bypass' below and paste your web token!",
-      "Coming Soon",
-      "Google Sign-In requires a development build. Run `npx expo run:ios` to enable native Google authentication.",
-    );
+    setError("");
+    setLoading(true);
+    try {
+      const result = await promptAsync();
+
+      if (result.type === "cancel" || result.type === "dismiss") {
+        return;
+      }
+
+      if (result.type !== "success") {
+        setError("Google sign-in was unsuccessful. Please try again.");
+        return;
+      }
+
+      const { data } = await authApi.post("/api/auth/login", {
+        code: result.params.code,
+      });
+
+      await setToken(data.token);
+      await loginWithToken(data.token, data.user);
+      router.replace("/(tabs)");
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message ||
+        "Failed to sign in with Google. Please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,19 +134,19 @@ export default function LoginScreen() {
         {/* Google Login Button */}
         <TouchableOpacity
           onPress={handleGoogleLogin}
-          disabled={loading}
+          disabled={loading || !request}
           activeOpacity={0.85}
           className="flex-row items-center justify-center gap-3 bg-white rounded-2xl px-8 py-4 w-full shadow-xl"
-          style={{ opacity: loading ? 0.7 : 1 }}
+          style={{ opacity: loading || !request ? 0.7 : 1 }}
         >
           {loading ? (
             <ActivityIndicator color="#FF5A1F" />
           ) : (
-          <Image
-            source={require("@/assets/images/google_icon.png")}
-            style={{ width: 24, height: 24 }}
-            resizeMode="contain"
-          />
+            <Image
+              source={require("@/assets/images/google_icon.png")}
+              style={{ width: 24, height: 24 }}
+              resizeMode="contain"
+            />
           )}
           <Text
             className="text-slate-900 text-lg"
@@ -106,37 +155,6 @@ export default function LoginScreen() {
             {loading ? "Authenticating..." : "Continue with Google"}
           </Text>
         </TouchableOpacity>
-
-        {/* Dev Bypass section */}
-
-        {/* <View className="mt-8 pt-8 border-t border-slate-700 w-full items-center">
-          <Text className="text-slate-400 text-xs mb-2">DEVELOPER BYPASS</Text>
-          <TextInput
-            placeholder="Paste web token here..."
-            placeholderTextColor="#64748b"
-            className="w-full bg-slate-800/80 text-white px-4 py-3 rounded-xl mb-3 text-center border border-slate-700"
-            secureTextEntry
-            onChangeText={(text) => {
-              const cleanToken = text.replace(/['"]+/g, "").trim();
-              if (cleanToken.length > 20) {
-                // Auto-login when a long token is pasted
-                setLoading(true);
-                setToken(cleanToken).then(() => {
-                  authApi
-                    .get("/api/auth/me")
-                    .then(({ data }) => {
-                      loginWithToken(cleanToken, data);
-                      router.replace("/(tabs)");
-                    })
-                    .catch(() => {
-                      setError("Invalid bypass token");
-                      setLoading(false);
-                    });
-                });
-              }
-            }}
-          />
-        </View> */}
 
         {/* Legal */}
         <Text
