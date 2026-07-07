@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Search, MapPin, ChevronDown } from "lucide-react-native";
@@ -143,8 +144,12 @@ export default function HomeScreen() {
               <ChevronDown size={14} color="#94a3b8" />
             </View>
           </TouchableOpacity>
-          <View className="w-10 h-10 rounded-full bg-orange-50 items-center justify-center">
-            <Text className="text-lg">🍽️</Text>
+          <View className="w-10 h-10 rounded-full bg-orange-50 items-center justify-center overflow-hidden">
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={{ width: 28, height: 28 }}
+              resizeMode="contain"
+            />
           </View>
         </View>
 

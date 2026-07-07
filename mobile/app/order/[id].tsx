@@ -16,6 +16,7 @@ import { restaurantApi } from "@/lib/api";
 import type { IOrder } from "@/lib/types";
 import { getOrderStatus, STATUS_FLOW } from "@/lib/orderConstants";
 import { useRiderSocket } from "@/hooks/useRiderSocket";
+import ReviewForm from "@/components/ReviewForm";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,10 +41,10 @@ export default function OrderDetailScreen() {
       if (fetchedOrder.restaurantId) {
         try {
           const menuRes = await restaurantApi.get(
-            `/api/menu/${fetchedOrder.restaurantId}`,
+            `/api/item/all/${fetchedOrder.restaurantId}`,
           );
           const menuItems: { _id: string; image?: string }[] =
-            menuRes.data.menu || menuRes.data || [];
+            menuRes.data || [];
           const imgMap: Record<string, string> = {};
           menuItems.forEach((m) => {
             if (m._id && m.image) imgMap[m._id] = m.image;
@@ -663,6 +664,12 @@ export default function OrderDetailScreen() {
             </Text>
           </View>
         </View>
+        {/* ── Leave a Review (delivered orders only) ── */}
+        {order.status === "delivered" && (
+          <View className="mt-2">
+            <ReviewForm orderId={order._id} />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
