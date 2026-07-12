@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   image: string;
   role: string;
+  pushToken?: string;
 }
 
 const schema: Schema<IUser> = new Schema(
@@ -23,6 +24,10 @@ const schema: Schema<IUser> = new Schema(
       required: true,
     },
     role: {
+      type: String,
+      default: null,
+    },
+    pushToken: {
       type: String,
       default: null,
     },

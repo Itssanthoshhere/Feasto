@@ -83,6 +83,46 @@ export const mobileLoginUser = TryCatch(async (req, res) => {
   });
 });
 
+export const appleLoginUser = TryCatch(async (req, res) => {
+  const { identityToken, fullName } = req.body;
+
+  if (!identityToken) {
+    return res.status(400).json({
+      message: "identityToken is required",
+    });
+  }
+
+  const decoded = jwt.decode(identityToken) as any;
+  if (!decoded || !decoded.email) {
+    return res.status(400).json({
+      message: "Invalid identity token",
+    });
+  }
+
+  const email = decoded.email;
+  const name = fullName ? `${fullName.givenName || ""} ${fullName.familyName || ""}`.trim() : "Apple User";
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      image: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
+    });
+  }
+
+  const token = jwt.sign({ user }, process.env.JWT_SECRET as string, {
+    expiresIn: "15d",
+  });
+
+  res.status(200).json({
+    message: "Logged In Successfully with Apple",
+    token,
+    user,
+  });
+});
+
 
 const allowedRoles = ["customer", "rider", "seller"] as const;
 

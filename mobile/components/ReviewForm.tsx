@@ -8,7 +8,9 @@ import {
   Alert,
 } from "react-native";
 import { Star } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { restaurantApi } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 
 interface Props {
   orderId: string;
@@ -56,6 +58,8 @@ export default function ReviewForm({ orderId }: Props) {
         comment,
       });
       setExistingReview(data.review);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      analytics.track('review_submitted', { orderId, rating, hasComment: !!comment });
       Alert.alert("Thank you! 🎉", "Your review has been submitted.");
     } catch (e: any) {
       Alert.alert(
@@ -145,7 +149,10 @@ export default function ReviewForm({ orderId }: Props) {
         {[1, 2, 3, 4, 5].map((i) => (
           <TouchableOpacity
             key={i}
-            onPress={() => setRating(i)}
+            onPress={() => {
+              setRating(i);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
             activeOpacity={0.7}
           >
             <Star

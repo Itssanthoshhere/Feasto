@@ -34,6 +34,10 @@ type AppContextType = {
   fetchCart: () => Promise<void>;
   logout: () => Promise<void>;
   loginWithToken: (token: string, user: User) => Promise<void>;
+  addToCart: (itemId: string, restaurantId: string) => Promise<void>;
+  decrementCart: (itemId: string) => Promise<void>;
+  removeFromCart: (itemId: string) => Promise<void>;
+  reorderItems: (orderId: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -76,6 +80,50 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setQuantity(data.cartLength || 0);
     } catch {
       /* ignore */
+    }
+  }
+
+  // ─── Add to cart ────────────────────────────────────────────────────────
+  async function addToCart(itemId: string, restaurantId: string) {
+    if (!user) return;
+    try {
+      await restaurantApi.post("/api/cart/add", { itemId, restaurantId });
+      await fetchCart();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // ─── Decrement cart ──────────────────────────────────────────────────────
+  async function decrementCart(itemId: string) {
+    if (!user) return;
+    try {
+      await restaurantApi.post("/api/cart/remove", { itemId });
+      await fetchCart();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // ─── Remove from cart ───────────────────────────────────────────────────
+  async function removeFromCart(itemId: string) {
+    if (!user) return;
+    try {
+      await restaurantApi.delete(`/api/cart/remove/${itemId}`);
+      await fetchCart();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // ─── Reorder ────────────────────────────────────────────────────────────
+  async function reorderItems(orderId: string) {
+    if (!user) return;
+    try {
+      await restaurantApi.post("/api/cart/reorder", { orderId });
+      await fetchCart();
+    } catch (e) {
+      throw e;
     }
   }
 
@@ -187,6 +235,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         fetchCart,
         logout,
         loginWithToken,
+        addToCart,
+        decrementCart,
+        removeFromCart,
+        reorderItems,
       }}
     >
       {children}

@@ -14,8 +14,43 @@ import {
 import { AppProvider } from "@/context/AppContext";
 import { StatusBar } from "expo-status-bar";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { useBiometric } from "@/hooks/useBiometric";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Lock } from "lucide-react-native";
 
 SplashScreen.preventAutoHideAsync();
+
+function BiometricOverlay() {
+  const { isLocked, promptAuth } = useBiometric();
+
+  if (!isLocked) return null;
+
+  return (
+    <View
+      className="absolute top-0 bottom-0 left-0 right-0 z-50 bg-slate-900 items-center justify-center"
+      style={{ elevation: 999 }}
+    >
+      <Lock size={64} color="#FF5A1F" className="mb-6" />
+      <Text
+        className="text-white text-2xl mb-8"
+        style={{ fontFamily: "Outfit_800ExtraBold" }}
+      >
+        App Locked
+      </Text>
+      <TouchableOpacity
+        onPress={promptAuth}
+        className="bg-[#FF5A1F] px-8 py-4 rounded-2xl"
+      >
+        <Text
+          className="text-white text-lg"
+          style={{ fontFamily: "Outfit_700Bold" }}
+        >
+          Unlock to continue
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -43,6 +78,7 @@ export default function RootLayout() {
     >
       <AppProvider>
         <StatusBar style="auto" />
+        <BiometricOverlay />
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -62,10 +98,7 @@ export default function RootLayout() {
             name="address"
             options={{ title: "Manage Addresses", headerShown: false }}
           />
-          <Stack.Screen
-            name="ordersuccess"
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="ordersuccess" options={{ headerShown: false }} />
         </Stack>
       </AppProvider>
     </StripeProvider>

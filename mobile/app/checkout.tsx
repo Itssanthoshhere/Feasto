@@ -18,9 +18,11 @@ import {
   CreditCard,
   ShieldCheck,
 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { restaurantApi, utilsApi } from "@/lib/api";
 import { useAppData } from "@/context/AppContext";
 import type { ICart, IMenuItem, IRestaurant } from "@/lib/types";
+import { analytics } from "@/lib/analytics";
 
 interface Address {
   _id: string;
@@ -124,6 +126,7 @@ export default function CheckoutScreen() {
       return;
     }
     setPlacingOrder(true);
+    analytics.track('checkout_started', { addressId: selectedAddressId, promoCode: appliedPromo });
     try {
       // Step 1: Create the order
       const { data: orderData } = await restaurantApi.post("/api/order/new", {
@@ -166,6 +169,8 @@ export default function CheckoutScreen() {
           orderId,
         });
         await fetchCart();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        analytics.track('payment_success', { orderId });
         router.replace("/ordersuccess" as any);
       }
     } catch (e: any) {

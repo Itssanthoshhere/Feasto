@@ -3,10 +3,14 @@ import { useEffect } from 'react';
 import { Home, ShoppingCart, Package, User } from 'lucide-react-native';
 import { useAppData } from '@/context/AppContext';
 import { View, ActivityIndicator } from 'react-native';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export default function TabLayout() {
   const { isAuth, loading, user, quantity } = useAppData();
   const router = useRouter();
+  
+  // Register for push notifications if authenticated
+  usePushNotifications();
 
   useEffect(() => {
     if (!loading && !isAuth) {

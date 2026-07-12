@@ -11,6 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { authApi, setToken } from "@/lib/api";
 import { useAppData } from "@/context/AppContext";
 
@@ -115,6 +116,39 @@ export default function LoginScreen() {
       setError(
         e?.message || "Failed to sign in with Google. Please try again.",
       );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        throw new Error("Apple Sign In failed: No identity token returned.");
+      }
+
+      setLoading(true);
+      const { data } = await authApi.post("/api/auth/apple-login", {
+        identityToken: credential.identityToken,
+        fullName: credential.fullName,
+      });
+
+      await setToken(data.token);
+      await loginWithToken(data.token, data.user);
+      router.replace("/(tabs)");
+    } catch (e: any) {
+      if (e.code === "ERR_REQUEST_CANCELED") {
+        // User canceled, ignore
+        return;
+      }
+      setError(e?.message || "Failed to sign in with Apple.");
     } finally {
       setLoading(false);
     }
@@ -230,6 +264,23 @@ export default function LoginScreen() {
             style={{ fontFamily: "Outfit_700Bold" }}
           >
             {loading ? "Authenticating..." : "Continue with Google"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Apple Login Button */}
+        <TouchableOpacity
+          onPress={handleAppleLogin}
+          disabled={loading}
+          activeOpacity={0.85}
+          className="flex-row items-center justify-center gap-3 bg-black rounded-2xl px-8 py-4 w-full shadow-xl mt-4"
+          style={{ opacity: loading ? 0.7 : 1 }}
+        >
+          <Text style={{ fontSize: 22, color: "white", marginTop: -2 }}></Text>
+          <Text
+            className="text-white text-lg"
+            style={{ fontFamily: "Outfit_700Bold" }}
+          >
+            Continue with Apple
           </Text>
         </TouchableOpacity>
 

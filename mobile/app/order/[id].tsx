@@ -14,9 +14,15 @@ import { ArrowLeft, Phone, Store, MapPin, Package } from "lucide-react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { restaurantApi } from "@/lib/api";
 import type { IOrder } from "@/lib/types";
-import { getOrderStatus, STATUS_FLOW } from "@/lib/orderConstants";
-import { useRiderSocket } from "@/hooks/useRiderSocket";
+import {
+  getOrderStatus,
+  STATUS_FLOW,
+  ACTIVE_STATUSES,
+  OrderStatus,
+} from "@/lib/orderConstants";
+import { useOrderSocket } from "@/hooks/useOrderSocket";
 import ReviewForm from "@/components/ReviewForm";
+import { OrderDetailSkeleton } from "@/components/SkeletonBlock";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,9 +33,16 @@ export default function OrderDetailScreen() {
   // itemId -> image URL map, fetched from menu
   const [menuImages, setMenuImages] = useState<Record<string, string>>({});
 
-  const isRiderActive =
-    order?.status === "rider_assigned" || order?.status === "picked_up";
-  const liveRiderLoc = useRiderSocket(id as string, isRiderActive);
+  const isActive = order?.status
+    ? ACTIVE_STATUSES.includes(order.status as OrderStatus)
+    : false;
+  const { riderLocation, orderStatus } = useOrderSocket(id as string, isActive);
+
+  useEffect(() => {
+    if (orderStatus && order) {
+      setOrder((prev) => (prev ? { ...prev, status: orderStatus } : prev));
+    }
+  }, [orderStatus]);
 
   const fetchOrder = async () => {
     try {
@@ -71,14 +84,8 @@ export default function OrderDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#FF5A1F" />
-        <Text
-          className="text-slate-400 mt-3 text-sm"
-          style={{ fontFamily: "Outfit_400Regular" }}
-        >
-          Loading your order...
-        </Text>
+      <SafeAreaView className="flex-1 bg-slate-50">
+        <OrderDetailSkeleton />
       </SafeAreaView>
     );
   }
@@ -149,9 +156,7 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const { meta, isActive, stepIndex, isCancelled } = getOrderStatus(
-    order.status,
-  );
+  const { meta, stepIndex, isCancelled } = getOrderStatus(order.status);
 
   const orderTime = order.createdAt
     ? new Date(order.createdAt).toLocaleTimeString("en-IN", {
@@ -325,10 +330,10 @@ export default function OrderDetailScreen() {
                   longitudeDelta: 0.05,
                 }}
                 region={
-                  liveRiderLoc
+                  riderLocation
                     ? {
-                        latitude: liveRiderLoc.latitude,
-                        longitude: liveRiderLoc.longitude,
+                        latitude: riderLocation.latitude,
+                        longitude: riderLocation.longitude,
                         latitudeDelta: 0.02,
                         longitudeDelta: 0.02,
                       }
@@ -349,9 +354,9 @@ export default function OrderDetailScreen() {
                 </Marker>
 
                 {/* Live Rider Pin */}
-                {liveRiderLoc && (
+                {riderLocation && (
                   <Marker
-                    coordinate={liveRiderLoc}
+                    coordinate={riderLocation}
                     title={order.riderName || "Rider"}
                   >
                     <View className="w-12 h-12 rounded-full bg-violet-100 items-center justify-center border-2 border-white shadow-md">

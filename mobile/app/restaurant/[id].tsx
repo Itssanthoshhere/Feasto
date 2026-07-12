@@ -11,15 +11,25 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { ArrowLeft, Star, Search, Tag, Plus, Minus } from "lucide-react-native";
 import { restaurantApi } from "@/lib/api";
 import type { IRestaurant, IMenuItem, IPromotion } from "@/lib/types";
 import { useAppData } from "@/context/AppContext";
+import SkeletonBlock, { MenuItemSkeleton } from "@/components/SkeletonBlock";
+import { analytics } from "@/lib/analytics";
 
 export default function RestaurantScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { fetchCart, cart, quantity, subTotal } = useAppData();
+  const { cart, addToCart: ctxAddToCart, decrementCart } = useAppData();
+
+  const quantity = cart?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+  const subTotal =
+    cart?.reduce(
+      (acc, item) => acc + (item.itemId?.price || 0) * item.quantity,
+      0,
+    ) || 0;
 
   const [restaurant, setRestaurant] = useState<IRestaurant | null>(null);
   const [menuItems, setMenuItems] = useState<IMenuItem[]>([]);
@@ -72,11 +82,12 @@ export default function RestaurantScreen() {
     );
   });
 
-  const addToCart = async (itemId: string) => {
+  const handleAddToCart = async (itemId: string) => {
     setAddingId(itemId);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      await restaurantApi.post("/api/cart/add", { itemId, restaurantId: id });
-      await fetchCart();
+      await ctxAddToCart(itemId, id as string);
+      analytics.track("item_added", { itemId, restaurantId: id });
     } catch (e: any) {
       const msg = e?.response?.data?.message || "Failed to add item";
       Alert.alert("Error", msg);
@@ -85,10 +96,40 @@ export default function RestaurantScreen() {
     }
   };
 
+  const handleDecrementCart = async (itemId: string) => {
+    setAddingId(itemId);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await decrementCart(itemId);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || "Failed to remove item";
+      Alert.alert("Error", msg);
+    } finally {
+      setAddingId(null);
+    }
+  };
+
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#FF5A1F" />
+      <SafeAreaView className="flex-1 bg-slate-50">
+        <View className="h-52 bg-slate-200" />
+        <View className="flex-1 -mt-6 bg-slate-50 rounded-t-3xl px-4 pt-6">
+          <SkeletonBlock
+            height={28}
+            width="60%"
+            borderRadius={8}
+            style={{ marginBottom: 8 }}
+          />
+          <SkeletonBlock
+            height={16}
+            width="40%"
+            borderRadius={6}
+            style={{ marginBottom: 24 }}
+          />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <MenuItemSkeleton key={i} />
+          ))}
+        </View>
       </SafeAreaView>
     );
   }
@@ -334,6 +375,7 @@ export default function RestaurantScreen() {
               ) : (
                 filtered.map((item) => {
                   const isAdding = addingId === item._id;
+                  const cartItem = cart.find((c) => c.itemId._id === item._id);
                   return (
                     <View
                       key={item._id}
@@ -376,20 +418,36 @@ export default function RestaurantScreen() {
                           ₹{item.price}
                         </Text>
                       </View>
-                      <TouchableOpacity
-                        onPress={() => addToCart(item._id)}
-                        disabled={!restaurant.isOpen || isAdding}
-                        className={`w-9 h-9 rounded-full items-center justify-center ${!restaurant.isOpen ? "bg-slate-200" : "bg-[#FF5A1F]"}`}
-                      >
-                        {isAdding ? (
-                          <ActivityIndicator size="small" color="#fff" />
-                        ) : (
-                          <Plus
-                            size={18}
-                            color={restaurant.isOpen ? "#fff" : "#94a3b8"}
-                          />
+                      <View className="flex-row items-center gap-2">
+                        {cartItem && cartItem.quantity > 0 && (
+                          <TouchableOpacity
+                            onPress={() => handleDecrementCart(item._id)}
+                            disabled={!restaurant.isOpen || isAdding}
+                            className="w-9 h-9 rounded-full bg-slate-200 items-center justify-center"
+                          >
+                            <Minus size={18} color="#1e293b" />
+                          </TouchableOpacity>
                         )}
-                      </TouchableOpacity>
+                        {cartItem && cartItem.quantity > 0 && (
+                          <Text className="text-slate-800 font-bold px-2 w-6 text-center">
+                            {cartItem.quantity}
+                          </Text>
+                        )}
+                        <TouchableOpacity
+                          onPress={() => handleAddToCart(item._id)}
+                          disabled={!restaurant.isOpen || isAdding}
+                          className={`w-9 h-9 rounded-full items-center justify-center ${!restaurant.isOpen ? "bg-slate-200" : "bg-[#FF5A1F]"}`}
+                        >
+                          {isAdding ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                          ) : (
+                            <Plus
+                              size={18}
+                              color={restaurant.isOpen ? "#fff" : "#94a3b8"}
+                            />
+                          )}
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   );
                 })

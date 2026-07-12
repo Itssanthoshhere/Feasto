@@ -16,6 +16,7 @@ import { useAppData } from "@/context/AppContext";
 import { restaurantApi } from "@/lib/api";
 import type { IRestaurant } from "@/lib/types";
 import RestaurantCard from "@/components/RestaurantCard";
+import { RestaurantCardSkeleton } from "@/components/SkeletonBlock";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LocationPicker from "@/components/LocationPicker";
 
@@ -146,7 +147,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <View className="w-10 h-10 rounded-full bg-orange-50 items-center justify-center overflow-hidden">
             <Image
-              source={require('@/assets/images/logo.png')}
+              source={require("@/assets/images/logo.png")}
               style={{ width: 28, height: 28 }}
               resizeMode="contain"
             />
@@ -208,15 +209,18 @@ export default function HomeScreen() {
 
       {/* Content */}
       {loading || loadingLocation ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#FF5A1F" />
-          <Text
-            className="text-slate-500 mt-3 text-sm"
-            style={{ fontFamily: "Outfit_500Medium" }}
-          >
-            Finding restaurants near you...
-          </Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 32,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {[1, 2, 3, 4].map((i) => (
+            <RestaurantCardSkeleton key={i} />
+          ))}
+        </ScrollView>
       ) : error ? (
         <ScrollView
           refreshControl={

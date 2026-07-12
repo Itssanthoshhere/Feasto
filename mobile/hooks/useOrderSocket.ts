@@ -10,8 +10,9 @@ interface Location {
   longitude: number;
 }
 
-export function useRiderSocket(orderId: string, isActive: boolean) {
+export function useOrderSocket(orderId: string, isActive: boolean) {
   const [riderLocation, setRiderLocation] = useState<Location | null>(null);
+  const [orderStatus, setOrderStatus] = useState<string | null>(null);
 
   useEffect(() => {
     // Only connect if the order is active
@@ -35,11 +36,16 @@ export function useRiderSocket(orderId: string, isActive: boolean) {
 
       // Listen for the specific location event
       socket.on("rider:location", (payload: Location) => {
-        console.log("📍 Received live rider location:", payload);
         setRiderLocation({
           latitude: payload.latitude,
           longitude: payload.longitude,
         });
+      });
+
+      // Listen for order status updates
+      socket.on("order:status", (payload: { status: string }) => {
+        console.log("Socket received order status update:", payload.status);
+        setOrderStatus(payload.status);
       });
 
       socket.on("connect_error", (err) => {
@@ -57,5 +63,5 @@ export function useRiderSocket(orderId: string, isActive: boolean) {
     };
   }, [orderId, isActive]);
 
-  return riderLocation;
+  return { riderLocation, orderStatus };
 }

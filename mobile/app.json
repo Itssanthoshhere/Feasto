@@ -15,7 +15,8 @@
       "bundleIdentifier": "com.feasto.app",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Feasto needs your location to find nearby restaurants.",
-        "NSLocationAlwaysUsageDescription": "Feasto needs your location to find nearby restaurants."
+        "NSLocationAlwaysUsageDescription": "Feasto needs your location to find nearby restaurants.",
+        "NSFaceIDUsageDescription": "Feasto uses Face ID to securely lock the app."
       }
     },
     "android": {
@@ -62,7 +63,9 @@
         {
           "googleMapsApiKey": ""
         }
-      ]
+      ],
+      "expo-apple-authentication",
+      "expo-local-authentication"
     ],
     "experiments": {
       "typedRoutes": true
