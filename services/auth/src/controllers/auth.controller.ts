@@ -166,3 +166,27 @@ export const myProfile = TryCatch(async (req: AuthenticatedRequest, res) => {
   const user = req.user;
   res.json(user);
 });
+
+export const savePushToken = TryCatch(async (req: AuthenticatedRequest, res) => {
+  if (!req.user?._id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const { pushToken } = req.body;
+
+  if (!pushToken) {
+    return res.status(400).json({ message: "pushToken is required" });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { pushToken },
+    { new: true },
+  );
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  res.json({ message: "Push token saved", user });
+});
