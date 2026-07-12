@@ -1,25 +1,42 @@
 import { useState, useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { authApi } from "@/lib/api";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+import type * as NotificationsType from "expo-notifications";
+
+function getNotificationsModule(): typeof NotificationsType | null {
+  if (Platform.OS === "android" && Constants.appOwnership === "expo") {
+    console.log("Push notifications are not supported in Expo Go on Android.");
+    return null;
+  }
+  try {
+    return require("expo-notifications");
+  } catch (e) {
+    return null;
+  }
+}
+
+const Notifications = getNotificationsModule();
+
+if (Notifications) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState("");
   const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
+    NotificationsType.Notification | undefined
   >(undefined);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<NotificationsType.Subscription>();
+  const responseListener = useRef<NotificationsType.Subscription>();
 
   useEffect(() => {
     registerForPushNotificationsAsync()
@@ -32,16 +49,18 @@ export function usePushNotifications() {
       })
       .catch((error) => console.log("Push token error", error));
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        setNotification(notification);
-      },
-    );
+    if (Notifications) {
+      notificationListener.current = Notifications.addNotificationReceivedListener(
+        (notification) => {
+          setNotification(notification);
+        },
+      );
 
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("Notification tapped", response);
-      });
+      responseListener.current =
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          console.log("Notification tapped", response);
+        });
+    }
 
     return () => {
       if (notificationListener.current) {
@@ -58,6 +77,10 @@ export function usePushNotifications() {
 
 async function registerForPushNotificationsAsync() {
   let token;
+
+  if (!Notifications) {
+    return token;
+  }
 
   if (Platform.OS === "android") {
     Notifications.setNotificationChannelAsync("default", {
@@ -77,7 +100,7 @@ async function registerForPushNotificationsAsync() {
     }
     if (finalStatus !== "granted") {
       console.log("Failed to get push token for push notification!");
-      return;
+      return token;
     }
     const projectId =
       Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;

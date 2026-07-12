@@ -36,6 +36,8 @@ export default function OrderDetailScreen() {
   const isActive = order?.status
     ? ACTIVE_STATUSES.includes(order.status as OrderStatus)
     : false;
+  const isRiderActive =
+    order?.status === "out_for_delivery" || !!order?.rider;
   const { riderLocation, orderStatus } = useOrderSocket(id as string, isActive);
 
   useEffect(() => {

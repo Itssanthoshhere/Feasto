@@ -7,6 +7,9 @@ import {
   ActivityIndicator,
   Image,
   TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -155,13 +158,22 @@ export default function LoginScreen() {
   };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/bg_food.jpg")}
-      className="flex-1"
-      resizeMode="cover"
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* Dark overlay */}
-      <View className="absolute inset-0 bg-black/60" />
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+      >
+        <ImageBackground
+          source={require("@/assets/images/bg_food.jpg")}
+          className="flex-1"
+          resizeMode="cover"
+        >
+          {/* Dark overlay */}
+          <View className="absolute inset-0 bg-black/60" />
 
       <View className="flex-1 items-center justify-center px-6">
         {/* Logo + Brand */}
@@ -295,5 +307,7 @@ export default function LoginScreen() {
         </Text>
       </View>
     </ImageBackground>
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
