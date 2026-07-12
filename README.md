@@ -373,6 +373,14 @@ cd mobile              && npx expo start # Expo Go / Simulator
 
 Open [http://localhost:5173](http://localhost:5173) for web, or scan the QR code for mobile.
 
+### 6. Mobile App Developer Bypass (Login without OAuth)
+
+If you haven't set up Google/Apple OAuth credentials for the mobile app, you can bypass the login screen:
+1. Log in to the web app at `http://localhost:5173` using Google.
+2. Open your browser's Developer Tools (F12) -> Console.
+3. Run `localStorage.getItem('token')` and copy the JWT string (without quotes).
+4. On the mobile app login screen, paste the token into the **DEVELOPER BYPASS** input field at the bottom.
+
 ---
 
 ## 🔧 Environment Variables
