@@ -589,6 +589,37 @@ Contributions, issues, and feature requests are welcome.
 
 ---
 
+## 📦 Building the Mobile App
+
+The Feasto mobile app uses Expo Application Services (EAS) for cloud builds. To generate an APK or AAB for Android:
+
+### 1. Login to Expo
+
+```bash
+cd mobile
+npx eas-cli login
+```
+
+### 2. Configure EAS (if not already configured)
+
+```bash
+npx eas-cli build:configure
+```
+
+### 3. Build for Android
+
+To build a release version (AAB for Play Store):
+```bash
+npx eas-cli build --platform android
+```
+
+To build a direct-install APK (preview profile):
+```bash
+npx eas-cli build --platform android --profile preview
+```
+
+---
+
 ## 📜 License & Attribution
 
 This project is built for **educational and portfolio purposes**.
