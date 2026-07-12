@@ -18,12 +18,13 @@
   <img src="https://img.shields.io/badge/🚀_Live_Demo-Visit_Feasto-success?style=for-the-badge&logo=vercel&logoColor=white" />
 </a>
 
-<a href="https://santhosh-vs-portfolio.vercel.app" target="_blank">
-  <img src="https://img.shields.io/badge/🌐_Portfolio-Santhosh_VS-black?style=for-the-badge&logo=vercel&logoColor=white" />
+<a href="https://expo.dev/accounts/itssanthoshhere/projects/feasto/builds/aa0d513f-cf0d-4456-8b88-aa1656e623ed" target="_blank">
+  <img src="https://img.shields.io/badge/📱_Download_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" />
 </a>
 
-<a href="https://github.com/Itssanthoshhere" target="_blank">
-  <img src="https://img.shields.io/badge/GitHub-Itssanthoshhere-181717?style=for-the-badge&logo=github&logoColor=white" />
+
+
+
 </a>
 
 
@@ -589,7 +590,14 @@ Contributions, issues, and feature requests are welcome.
 
 ---
 
-## 📦 Building the Mobile App
+## 📦 Mobile App Releases
+
+You can download the latest successful Android build directly:
+- **Expo Build Logs**: [View on EAS (v1 Build)](https://expo.dev/accounts/itssanthoshhere/projects/feasto/builds/aa0d513f-cf0d-4456-8b88-aa1656e623ed)
+
+---
+
+## 🛠️ Building the Mobile App
 
 The Feasto mobile app uses Expo Application Services (EAS) for cloud builds. To generate an APK or AAB for Android:
 
