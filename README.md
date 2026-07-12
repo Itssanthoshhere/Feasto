@@ -81,13 +81,13 @@ This is a portfolio-grade project built for educational purposes, demonstrating 
 ### Service Map
 
 ```
-                          ┌──────────────────────┐
-                          │   Frontend (React)    │
-                          │   Vite · Port 5173    │
-                          │   Deployed on Vercel  │
-                          └──────┬───────────────┘
-                                 │ HTTP / WebSocket
-          ┌──────────────────────┼──────────────────────┐
+                          ┌──────────────────────┐      ┌──────────────────────┐
+                          │   Frontend (Web)     │      │   Mobile App (Expo)  │
+                          │   Vite · Port 5173   │      │   React Native       │
+                          │   Deployed on Vercel │      │   Customer UI        │
+                          └──────┬───────────────┘      └────────┬─────────────┘
+                                 │ HTTP / WebSocket              │
+          ┌──────────────────────┼───────────────────────────────┘
           │                      │                      │
    ┌──────▼──────┐       ┌───────▼──────┐      ┌───────▼──────┐
    │  Auth :8000 │       │Rest :8002    │      │ Utils :8003  │
@@ -158,8 +158,9 @@ Socket.io → live tracking updates to customer
 - Role selection flow post-login: **customer**, **seller**, or **rider**
 - Separate **admin** role (manually assigned in MongoDB) with dedicated control panel
 
-### 🛒 Customer Experience
+### 🛒 Customer Experience (Web & Mobile)
 
+- **Cross-platform access** — Responsive web app and native Expo mobile app (iOS/Android)
 - **Location-aware restaurant discovery** — Haversine distance sorting, category filters, and search
 - **Cart management** — single-restaurant constraint enforced server-side to prevent cross-restaurant orders
 - **Saved delivery addresses** — map-based geocoding via Leaflet
@@ -167,6 +168,7 @@ Socket.io → live tracking updates to customer
 - **Dual payment** — Razorpay modal (INR) and Stripe redirect (international cards)
 - **Live order tracking** — Socket.io status updates with Leaflet routing maps
 - **Order history** and post-delivery review system
+- **Mobile enhancements** — Biometric lock, Haptic feedback, Apple Sign-in, and Skeleton loading
 
 ### 🏪 Restaurant (Seller) Dashboard
 
@@ -200,7 +202,8 @@ Socket.io → live tracking updates to customer
 
 | Layer             | Technology         | Version | Role                                            |
 | :---------------- | :----------------- | :------ | :---------------------------------------------- |
-| **Frontend**      | React              | 19.2.6  | SPA with role-based routing                     |
+| **Web Frontend**  | React              | 19.2.6  | SPA with role-based routing                     |
+| **Mobile App**    | Expo/React Native  | 52.0.x  | Native customer application                     |
 | **Build**         | Vite               | 8.0.12  | Dev server + production bundling                |
 | **Styling**       | Tailwind CSS       | 4.3.1   | Utility-first responsive UI                     |
 | **Backend**       | Express.js         | 5.2.1   | REST API for all microservices                  |
@@ -245,6 +248,17 @@ feasto/
 │   │   │   └── SocketContext.tsx         # Socket.io connection manager
 │   │   └── main.tsx                      # Service URL config & providers
 │   └── vercel.json                       # SPA rewrite rules
+│
+├── 📁 mobile/                            # Expo React Native App
+│   ├── 📁 app/                           # Expo Router file-based routing
+│   │   ├── 📁 (tabs)/                    # Bottom tab navigation (Home, Cart, Orders, Profile)
+│   │   ├── restaurant/[id].tsx           # Restaurant menu & ordering
+│   │   ├── order/[id].tsx                # Live order tracking with maps & sockets
+│   │   └── checkout.tsx                  # Payment & checkout flow
+│   ├── 📁 components/                    # Reusable UI components & skeletons
+│   ├── 📁 hooks/                         # Custom hooks (Sockets, Biometrics, Location)
+│   ├── 📁 lib/                           # API clients, analytics, and types
+│   └── app.json                          # Expo configuration
 │
 └── 📁 services/
     ├── 📁 auth/                          # Port 8000 — Google OAuth, JWT, roles
@@ -354,9 +368,10 @@ cd services/realtime   && npm run dev   # :8004
 cd services/rider      && npm run dev   # :8005
 cd services/admin      && npm run dev   # :8006
 cd frontend            && npm run dev   # :5173
+cd mobile              && npx expo start # Expo Go / Simulator
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173) for web, or scan the QR code for mobile.
 
 ---
 
@@ -528,8 +543,8 @@ Services communicate via a shared `INTERNAL_SERVICE_KEY` header. The Realtime Se
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │   Frontend  │────▶│  Auth :8000  │     │ Admin :8006 │
-│   :5173     │     └──────────────┘     └─────────────┘
-│  (Vercel)   │     ┌──────────────┐     ┌─────────────┐
+│ (Web/Mobile)│     └──────────────┘     └─────────────┘
+│             │     ┌──────────────┐     ┌─────────────┐
 │             │────▶│ Restaurant   │────▶│  Realtime   │
 │             │     │    :8002     │     │    :8004    │
 │             │     └──────┬───────┘     └─────────────┘
