@@ -14,28 +14,26 @@
 
 <br/>
 
-<a href="https://getfeasto.vercel.app" target="_blank">
-  <img src="https://img.shields.io/badge/🚀_Live_Demo-Visit_Feasto-success?style=for-the-badge&logo=vercel&logoColor=white" />
-</a>
+<p>
+  <a href="https://getfeasto.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/🚀_Live_Demo-Visit_Feasto-success?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+  &nbsp;
+  <a href="https://expo.dev/accounts/itssanthoshhere/projects/feasto/builds/aa0d513f-cf0d-4456-8b88-aa1656e623ed" target="_blank">
+    <img src="https://img.shields.io/badge/📱_Download_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" />
+  </a>
+</p>
 
-<a href="https://expo.dev/accounts/itssanthoshhere/projects/feasto/builds/aa0d513f-cf0d-4456-8b88-aa1656e623ed" target="_blank">
-  <img src="https://img.shields.io/badge/📱_Download_APK-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" />
-</a>
-
-
-
-
-</a>
-
-
-<img src="https://img.shields.io/badge/Frontend-React_19-61DAFB?style=flat-square&logo=react&logoColor=white" />
-<img src="https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
-<img src="https://img.shields.io/badge/Backend-Node.js_+_Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
-<img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" />
-<img src="https://img.shields.io/badge/Messaging-RabbitMQ-FF6600?style=flat-square&logo=rabbitmq&logoColor=white" />
-<img src="https://img.shields.io/badge/Realtime-Socket.IO-010101?style=flat-square&logo=socketdotio&logoColor=white" />
-<img src="https://img.shields.io/badge/Maps-Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white" />
-<img src="https://img.shields.io/badge/Containers-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
+<p>
+  <img src="https://img.shields.io/badge/Frontend-React_19-61DAFB?style=flat-square&logo=react&logoColor=white" />
+  <img src="https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Backend-Node.js_+_Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/Messaging-RabbitMQ-FF6600?style=flat-square&logo=rabbitmq&logoColor=white" />
+  <img src="https://img.shields.io/badge/Realtime-Socket.IO-010101?style=flat-square&logo=socketdotio&logoColor=white" />
+  <img src="https://img.shields.io/badge/Maps-Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white" />
+  <img src="https://img.shields.io/badge/Containers-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
+</p>
 
 </div>
 
