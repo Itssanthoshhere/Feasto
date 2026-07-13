@@ -1,0 +1,29 @@
+name: Keep MongoDB Alive
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Runs at 00:00 every Sunday (once a week)
+  workflow_dispatch: # Allows you to run it manually
+
+jobs:
+  ping-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping MongoDB
+        run: |
+          npm install mongodb
+          node -e "
+            const { MongoClient } = require('mongodb');
+            async function ping() {
+              const client = new MongoClient(process.env.MONGO_URI);
+              try {
+                await client.connect();
+                await client.db('admin').command({ ping: 1 });
+                console.log('Database pinged successfully');
+              } finally {
+                await client.close();
+              }
+            }
+            ping();
+          "
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
